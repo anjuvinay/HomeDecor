@@ -1,10 +1,8 @@
 ﻿<!DOCTYPE html>
 <html class="no-js" lang="en">
-
 <head>
     <meta charset="utf-8">
     <title>Home Decor</title>
-    
     <!-- Template CSS -->
     <link rel="stylesheet" href="assets/css/maind134.css?v=3.4">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
@@ -12,26 +10,20 @@
         .star-rating {
             display: flex;
         }
-
         .star {
             cursor: pointer;
             margin-right: 5px;
         }
-
         input[type="checkbox"] {
             display: none;
         }
-
-        input[type="checkbox"]:checked+label {
+        input[type="checkbox"]:checked + label {
             color: gold;
         }
     </style>
 </head>
-
 <body>
-
     <%- include('userHeader') %>
-
     <main class="main">
         <div class="page-header breadcrumb-wrap">
             <div class="container">
@@ -45,13 +37,18 @@
             <div class="container">
                 <div class="row flex-row-reverse">
                     <div class="col-lg-9">
+                        
                         <div class="shop-product-fillter">
                             <div class="totall-product">
-                                <p> We found <strong class="text-brand"><%=products.length%></strong> items for you!</p>
+                                <p> We found <strong class="text-brand"><%= products.length %></strong> items for you!</p>
                             </div>
-                            <form action="/shop" method="get" class="form-inline">
-                                <input type="text" name="search" placeholder="Search products..." value="<%= search %>" class="form-control">
-                                <button type="submit" class="btn btn-primary">Search</button>
+                            <form id="search-form" action="/shop" method="get" class="form-inline">
+                                <input type="hidden" name="sort" id="sort-input" value="<%= sort %>">
+                                <input type="hidden" name="categoryId" value="<%= categoryId %>">
+                                <input type="text" name="search" placeholder="Search products..." value="<%= search %>" class="form-control">&nbsp;
+                                <button type="submit" class="btn btn-primary">Search</button>&nbsp;
+                                <button style="background-color: rgb(34, 133, 126); height: 3rem;" class="btn btn-primary">
+                                    <a style="color: white;text-decoration: none;" href="/shop">Clear</a></button>
                             </form>
                         </div>
                         <div class="row product-grid-3">
@@ -60,22 +57,17 @@
                                     <div class="product-cart-wrap mb-30">
                                         <div class="product-img-action-wrap">
                                             <div class="product-img product-img-zoom">
-                                                <a href="/productDetails?id=<%=products[i]._id%>">
-                                                    <img class="default-img" src="/<%=products[i].image[0]%>" alt="">
-                                                    <img class="hover-img" src="/<%=products[i].image[0]%>" alt="">
+                                                <a href="/productDetails?id=<%= products[i]._id %>">
+                                                    <img class="default-img" src="/<%= products[i].image[0] %>" alt="">
+                                                    <img class="hover-img" src="/<%= products[i].image[0] %>" alt="">
                                                 </a>
                                             </div>
-
-
-                                           
-
-
                                         </div>
                                         <div class="product-content-wrap">
                                             <div class="product-category">
-                                                <a href="/productDetails?id=<%=products[i]._id%>"><%=products[i].brandId.brandName%></a>
+                                                <a href="/productDetails?id=<%= products[i]._id %>"><%= products[i].brandId.brandName %></a>
                                             </div>
-                                            <h2><a href="/productDetails?id=<%=products[i]._id%>"><%=products[i].title%></a></h2>
+                                            <h2><a href="/productDetails?id=<%= products[i]._id %>"><%= products[i].title %></a></h2>
                                             <% if (products[i].rating != null) { %>
                                                 <div class="star-rating" id="ratingStars">
                                                     <% for (let j = 1; j <= 5; j++) { %>
@@ -88,10 +80,10 @@
                                                 </div>
                                             <% } %>
                                             <div class="product-price">
-                                                <span>र<%=products[i].salePrice.toFixed(2)%></span>
-                                                <span class="old-price">र<%=products[i].regularPrice.toFixed(0)%></span>
+                                                <span>र<%= products[i].salePrice.toFixed(2) %></span>
+                                                <span class="old-price">र<%= products[i].regularPrice.toFixed(0) %></span>
                                                 <% if (products[i].bestDiscount > 0) { %>
-                                                    <span class="text-muted"><%=products[i].bestDiscount.toFixed(0)%> % OFF</span>
+                                                    <span class="text-muted"><%= products[i].bestDiscount.toFixed(0) %> % OFF</span>
                                                 <% } %>
                                             </div>
                                         </div>
@@ -99,13 +91,13 @@
                                 </div>
                             <% } %>
                         </div>
-                        <!--pagination-->
+                        <!-- Pagination -->
                         <div class="pagination-area mt-15 mb-sm-5 mb-lg-0">
                             <nav aria-label="Page navigation example">
                                 <ul class="pagination justify-content-start">
                                     <% for (let i = 1; i <= totalPages; i++) { %>
                                         <li class="page-item <%= currentPage === i ? 'active' : '' %>">
-                                            <a class="page-link" href="?page=<%= i %>&sort=<%= sort %>&search=<%= search %>&categoryId=<%= categoryId %>&message=<%= message %>"><%= i %></a>
+                                            <a class="page-link" href="?page=<%= i %>&sort=<%= sort %>&search=<%= search %>&categoryId=<%= categoryId %>"><%= i %></a>
                                         </li>
                                     <% } %>
                                 </ul>
@@ -115,39 +107,35 @@
                     <div class="col-lg-3 primary-sidebar sticky-sidebar">
                         <!-- Filter Section -->
                         <div class="widget-category mb-30">
-                            <h5 class="section-title style-1 mb-30 wow fadeIn animated">Apply Filter</h5>
+                            <h5 class="section-title style-1 mb-30 wow fadeIn animated">Sort by</h5>
                             <ul class="categories">
-                                <li><a href="/shop?sort=atoz&page=<%= currentPage %>&message=<%= message %>">A to Z</a></li>
-                                <li><a href="/shop?sort=ztoa&page=<%= currentPage %>&message=<%= message %>">Z to A</a></li>
-                                <li><a href="/shop?sort=newarrival&page=<%= currentPage %>&message=<%= message %>">New Arrivals</a></li>
-                                <li><a href="/shop?sort=popular&page=<%= currentPage %>&message=<%= message %>">Popularity</a></li>
-                                <li><a href="/shop?sort=rating&page=<%= currentPage %>&message=<%= message %>">Rating</a></li>
-                                <li><a href="/shop?sort=featured&page=<%= currentPage %>&message=<%= message %>">Featured</a></li>
+                                <li><a href="javascript:void(0);" onclick="updateSort('atoz')">A to Z</a></li>
+                                <li><a href="javascript:void(0);" onclick="updateSort('ztoa')">Z to A</a></li>
+                                <li><a href="javascript:void(0);" onclick="updateSort('newarrival')">New Arrivals</a></li>
+                                <li><a href="javascript:void(0);" onclick="updateSort('popular')">Popularity</a></li>
+                                <li><a href="javascript:void(0);" onclick="updateSort('rating')">Rating</a></li>
+                                <li><a href="javascript:void(0);" onclick="updateSort('featured')">Featured</a></li>
+                                <li><a href="javascript:void(0);" onclick="updateSort('ascending')">Price Low to High</a></li>
+                                <li><a href="javascript:void(0);" onclick="updateSort('descending')">Price High to Low</a></li>
                             </ul>
                         </div>
+                      
                         <div class="widget-category mb-30">
-                            <h5 class="section-title style-1 mb-30 wow fadeIn animated">Category</h5>
+                            <h5 class="section-title style-1 mb-30 wow fadeIn animated">Category Filter</h5>
                             <ul class="categories">
                                 <% for (let i = 0; i < categories.length; i++) { %>
-                                    <li><a href="/shop?categoryId=<%= categories[i]._id %>&sort=<%= sort %>&search=<%= search %>&message=<%= message %>"><%= categories[i].categoryName %></a></li>
+                                    <li><a href="/shop?categoryId=<%= categories[i]._id %>&sort=<%= sort %>&search=<%= search %>"><%= categories[i].categoryName %></a></li>
                                 <% } %>
                             </ul>
                         </div>
-                        <div class="widget-category mb-30">
-                            <h5 class="section-title style-1 mb-30 wow fadeIn animated">Price</h5>
-                            <ul class="categories">
-                                <li><a href="/shop?sort=ascending&page=<%= currentPage %>&message=<%= message %>">Low to High</a></li>
-                                <li><a href="/shop?sort=descending&page=<%= currentPage %>&message=<%= message %>">High to Low</a></li>
-                            </ul>
-                        </div>
+                      
                     </div>
                 </div>
             </div>
         </section>
     </main>
     <%- include('footer') %>
-
-    <!-- Vendor JS-->
+    <!-- Vendor JS -->
     <script src="assets/js/vendor/modernizr-3.6.0.min.js"></script>
     <script src="assets/js/vendor/jquery-3.6.0.min.js"></script>
     <script src="assets/js/vendor/jquery-migrate-3.3.0.min.js"></script>
@@ -171,6 +159,14 @@
     <!-- Template JS -->
     <script src="assets/js/maind134.js?v=3.4"></script>
     <script src="assets/js/shopd134.js?v=3.4"></script>
-</body>
 
+    <!-- JavaScript to handle sorting and form submission -->
+    <script>
+        // Update sort parameter and submit the form
+        function updateSort(value) {
+            document.getElementById('sort-input').value = value;
+            document.getElementById('search-form').submit();
+        }
+    </script>
+</body>
 </html>

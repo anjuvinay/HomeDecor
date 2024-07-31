@@ -585,8 +585,13 @@ getWallet: async (req, res) => {
             return productTransactions;
         });
 
+        // Ensure consistent date format parsing
+        transactions.forEach(transaction => {
+            transaction.orderDate = new Date(transaction.orderDate);
+        });
+
         // Sort transactions by orderDate in descending order
-        transactions.sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate));
+        transactions.sort((a, b) => b.orderDate - a.orderDate);
 
         res.render('wallet', { user, transactions });
     } catch (error) {
@@ -594,6 +599,7 @@ getWallet: async (req, res) => {
         res.redirect('/500');
     }
 },
+
 
 
 

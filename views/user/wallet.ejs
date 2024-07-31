@@ -47,7 +47,8 @@
                     <tbody>
                         <% transactions.forEach(transaction => { %>
                             <tr>
-                                <td><%= new Date(transaction.orderDate).toLocaleDateString('en-US') %></td>
+                                <td><%= new Date(transaction.orderDate).toLocaleDateString('en-GB') %></td>
+                                
                                 <td>₹ <%= transaction.amount.toFixed(2) %></td>
                                 <td>
                                     <%= transaction.type %>
@@ -67,7 +68,9 @@
     <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
     <script>
         $(document).ready(function() {
-            $('#transactionsTable').DataTable();
+            $('#transactionsTable').DataTable({
+                "ordering": false
+            });
         });
     </script>
 </body>

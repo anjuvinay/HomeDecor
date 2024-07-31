@@ -438,12 +438,109 @@ module.exports = {
 
 
 
+    // shop: async (req, res) => {
+    //     try {
+    //         const email = req.session.email;
+    //         const userData = await User.findOne({ email: email });
+    //         const categories = await Category.find({ is_active: true });
+    //         const brands = await Brand.find({ is_active: true });
+    //         const message = req.query.message ?? null;
+    //         const sort = req.query.sort ?? '';
+    //         const searchQuery = req.query.search ?? '';
+    //         const categoryId = req.query.categoryId ?? '';
+    //         const currentPage = parseInt(req.query.page) || 1;
+    //         const pageSize = 9;
+    
+    //         // Default query and sort options
+    //         let query = { is_active: true };
+    //         let sortOptions = {};
+    
+    //         // Apply search filter
+    //         if (searchQuery) {
+    //             query.$or = [
+    //                 { title: new RegExp(searchQuery, 'i') },
+    //                 { description: new RegExp(searchQuery, 'i') },
+    //             ];
+    //         }
+    
+    //         // Apply category filter
+    //         if (categoryId) {
+    //             query.categoryId = categoryId;
+    //         }
+    
+    //         // Determine sort options based on query parameter
+    //         switch (sort) {
+    //             case 'ascending':
+    //                 sortOptions = { salePrice: 1 };
+    //                 break;
+    //             case 'descending':
+    //                 sortOptions = { salePrice: -1 };
+    //                 break;
+    //             case 'newarrival':
+    //                 sortOptions = { date: -1 };
+    //                 break;
+    //             case 'atoz':
+    //                 sortOptions = { title: 1 };
+    //                 break;
+    //             case 'ztoa':
+    //                 sortOptions = { title: -1 };
+    //                 break;
+    //             case 'rating':
+    //                 sortOptions = { rating: -1 };
+    //                 break;
+    //             case 'popular':
+    //                 sortOptions = { popularity: -1 };
+    //                 break;
+    //             case 'featured':
+    //                 sortOptions = { featured: -1 };
+    //                 break;
+    //             default:
+    //                 sortOptions = { date: 1 };
+    //         }
+    
+    //         // Calculate skip and limit values for pagination
+    //         const skip = (currentPage - 1) * pageSize;
+    
+    //         // Get total number of products matching the query
+    //         const totalProducts = await Product.countDocuments(query);
+    
+    //         // Fetch paginated and sorted products from the database
+    //         const productData = await Product.find(query)
+    //             .sort(sortOptions)
+    //             .skip(skip)
+    //             .limit(pageSize);
+    
+    //         // Calculate total pages for pagination
+    //         const totalPages = Math.ceil(totalProducts / pageSize);
+    
+    //         // Render the shop page with the fetched data
+    //         res.render('shop', {
+    //             products: productData,
+    //             user: userData,
+    //             categories,
+    //             brands,
+    //             search: searchQuery,
+    //             message,
+    //             currentPage,
+    //             totalPages,
+    //             sort, // Pass the sort parameter to the view
+    //             categoryId // Pass the categoryId to the view
+    //         });
+    //     } catch (error) {
+    //         console.log(error.message);
+    //         res.redirect('/500');
+    //     }
+    // },
+    
+
+
+
+
     shop: async (req, res) => {
         try {
             const email = req.session.email;
             const userData = await User.findOne({ email: email });
             const categories = await Category.find({ is_active: true });
-            const brands = await Brand.find({ is_active: true });
             const message = req.query.message ?? null;
             const sort = req.query.sort ?? '';
             const searchQuery = req.query.search ?? '';
@@ -451,83 +548,78 @@ module.exports = {
             const currentPage = parseInt(req.query.page) || 1;
             const pageSize = 9;
     
-            // Default query and sort options
-            let query = { is_active: true };
-            let sortOptions = {};
-    
-            // Apply search filter
-            if (searchQuery) {
+                     
+
+             // Construct the base query for fetching products
+            
+             let query = { is_active: true };
+
+              if (searchQuery) {
                 query.$or = [
-                    { title: new RegExp(searchQuery, 'i') },
-                    { description: new RegExp(searchQuery, 'i') },
-                ];
-            }
+                     { title: new RegExp(searchQuery, 'i') },
+                     { description: new RegExp(searchQuery, 'i') }
+                 ];
+             }
     
-            // Apply category filter
+            // Apply category filter if present
             if (categoryId) {
                 query.categoryId = categoryId;
             }
     
-            // Determine sort options based on query parameter
+            // Determine sorting options based on user selection
+            let sortOptions = {};
             switch (sort) {
-                case 'ascending':
-                    sortOptions = { salePrice: 1 };
-                    break;
-                case 'descending':
-                    sortOptions = { salePrice: -1 };
-                    break;
-                case 'newarrival':
-                    sortOptions = { date: -1 };
-                    break;
                 case 'atoz':
-                    sortOptions = { title: 1 };
+                    sortOptions = { title: 1 }; // Sort by title A-Z
                     break;
                 case 'ztoa':
-                    sortOptions = { title: -1 };
+                    sortOptions = { title: -1 }; // Sort by title Z-A
+                    break;
+                case 'ascending':
+                    sortOptions = { salePrice: 1 }; // Sort by price low to high
+                    break;
+                case 'descending':
+                    sortOptions = { salePrice: -1 }; // Sort by price high to low
+                    break;
+                case 'newarrival':
+                    sortOptions = { date: -1 }; // Sort by new arrivals
                     break;
                 case 'rating':
-                    sortOptions = { rating: -1 };
-                    break;
-                case 'popular':
-                    sortOptions = { popularity: -1 };
-                    break;
-                case 'featured':
-                    sortOptions = { featured: -1 };
+                    sortOptions = { rating: -1 }; // Sort by rating
                     break;
                 default:
-                    sortOptions = { date: 1 };
+                    sortOptions = {}; // No sorting applied
             }
     
-            // Calculate skip and limit values for pagination
+            // Calculate the number of items to skip for pagination
             const skip = (currentPage - 1) * pageSize;
     
-            // Get total number of products matching the query
+            // Fetch the total number of products matching the query for pagination
             const totalProducts = await Product.countDocuments(query);
     
-            // Fetch paginated and sorted products from the database
+            // Fetch the filtered and sorted products from the database
             const productData = await Product.find(query)
-                .sort(sortOptions)
+                .sort(sortOptions) // Apply sorting
                 .skip(skip)
                 .limit(pageSize);
     
-            // Calculate total pages for pagination
+            // Calculate the total number of pages
             const totalPages = Math.ceil(totalProducts / pageSize);
     
-            // Render the shop page with the fetched data
+            // Render the shop page with the filtered, sorted, and paginated products
             res.render('shop', {
                 products: productData,
                 user: userData,
                 categories,
-                brands,
                 search: searchQuery,
                 message,
                 currentPage,
                 totalPages,
-                sort, // Pass the sort parameter to the view
-                categoryId // Pass the categoryId to the view
+                sort,
+                categoryId
             });
         } catch (error) {
-            console.log(error.message);
+            console.error(error.message);
             res.redirect('/500');
         }
     },

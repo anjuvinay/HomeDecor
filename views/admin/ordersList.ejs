@@ -45,7 +45,7 @@
                                     <td><%= order[i].userId ? order[i].userId.email : 'N/A' %></td>
                                     <td><%=order[i].totalAmount%></td>
                                   
-                                    <td><%=order[i].orderDate%></td>
+                                    <td><%= new Intl.DateTimeFormat('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(order[i].orderDate)) %></td>
                                    
                                     <td class="text-end">
                                         <a href="/admin/orderDetails?orderId=<%=order[i]._id%>" class="btn btn-md rounded font-sm">Details</a>
