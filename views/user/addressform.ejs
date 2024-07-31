@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Home Decor</title>
+
+    <!-- Template CSS -->
+    <link rel="stylesheet" href="assets/css/maind134.css?v=3.4">
+</head>
+
+<body>
+    <%- include('userHeader') %>
+    <main class="main">
+        <div class="page-header breadcrumb-wrap">
+            <div class="container">
+                <div class="breadcrumb">
+                    <a href="/" rel="nofollow">Home</a>
+                    <span></span> Account
+                    <span></span> New Address
+                </div>
+            </div>
+        </div>
+        <section class="mt-50 mb-50">
+            <div class="container">
+                <section class="mt-50 mb-50">
+                    <div class="container">
+                        <div class="row ">
+                            <div class="col-md-6" style="display: block; margin:auto">
+                                <%if(locals.message){%>
+                                    <div class="mb-25">
+                                        <h4 class="text-success text-center">
+                                            <%=message%>
+                                        </h4>
+                                    </div>
+                                <%}%>
+                                <div class="mb-25">
+                                    <h4>New Address</h4>
+                                </div>
+                                <form method="post" action="/addressForm" onsubmit="return validateForm()">
+                                    <% if(locals.checkout) { %>
+                                        <input type="hidden" value="<%= checkout %>" name="checkout">
+                                    <% } %>
+                                    <div class="form-group">
+                                        <label for="fname">First Name <span class="required">*</span></label>
+                                        <input type="text" id="fname" name="fname" required placeholder="First name *">
+                                        <span id="fnameError" class="error text-danger"></span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="lname">Last Name <span class="required">*</span></label>
+                                        <input type="text" id="lname" name="lname" required placeholder="Last name *">
+                                        <span id="lnameError" class="error text-danger"></span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="country">Country <span class="required">*</span></label>
+                                        <select id="country" class="form-control select-active" name="country" required>
+                                            <option value="">Select your Country</option>
+                                        </select>
+                                        <span id="countryError" class="error text-danger"></span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="houseName">Address <span class="required">*</span></label>
+                                        <input type="text" id="houseName" name="houseName" required placeholder="Address *">
+                                        <span id="houseNameError" class="error text-danger"></span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="city">City / Town <span class="required">*</span></label>
+                                        <input type="text" id="city" name="city" required placeholder="City / Town *">
+                                        <span id="cityError" class="error text-danger"></span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="state">State <span class="required">*</span></label>
+                                        <input type="text" id="state" name="state" required placeholder="State *">
+                                        <span id="stateError" class="error text-danger"></span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="pincode">Postcode / ZIP <span class="required">*</span></label>
+                                        <input type="text" id="pincode" name="pincode" required placeholder="Postcode / ZIP *">
+                                        <span id="pincodeError" class="error text-danger"></span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="phone">Phone <span class="required">*</span></label>
+                                        <input type="text" id="phone" name="phone" required placeholder="Phone *">
+                                        <span id="phoneError" class="error text-danger"></span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="email">Email address <span class="required">*</span></label>
+                                        <input type="email" id="email" name="email" required placeholder="Email address *">
+                                        <span id="emailError" class="error text-danger"></span>
+                                    </div>
+                                    <div class="mb-20">
+                                        <h5>Additional information</h5>
+                                    </div>
+                                    <div class="form-group mb-30">
+                                        <label for="orderNotes">Order Notes</label>
+                                        <textarea id="orderNotes" rows="5" placeholder="Order notes" name="orderNotes"></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-md rounded font-sm hover-up">Add address</button>
+                                </form>
+
+                                <script>
+                                    // Fetch country data from REST Countries API
+                                    async function fetchCountries() {
+                                        try {
+                                            const response = await fetch('https://restcountries.com/v3.1/all');
+                                            const countries = await response.json();
+                                            const countrySelect = document.getElementById('country');
+                                            countries.forEach(country => {
+                                                const option = document.createElement('option');
+                                                option.value = country.name.common;
+                                                option.textContent = country.name.common;
+                                                countrySelect.appendChild(option);
+                                            });
+                                        } catch (error) {
+                                            console.error('Error fetching countries:', error);
+                                        }
+                                    }
+
+                                    // Call fetchCountries function when the page loads
+                                    window.onload = fetchCountries;
+
+                                    // Your existing JavaScript code with added phone number and pincode validation
+                                    function validateForm() {
+                                        // Reset error messages
+                                        clearErrors();
+
+                                        var fname = document.getElementById('fname').value.trim();
+                                        var lname = document.getElementById('lname').value.trim();
+                                        var country = document.getElementById('country').value;
+                                        var houseName = document.getElementById('houseName').value.trim();
+                                        var city = document.getElementById('city').value.trim();
+                                        var state = document.getElementById('state').value.trim();
+                                        var pincode = document.getElementById('pincode').value.trim();
+                                        var phone = document.getElementById('phone').value.trim();
+                                        var email = document.getElementById('email').value.trim();
+
+                                        // Validate first name
+                                        if (fname === '') {
+                                            showError('fnameError', 'Please enter your first name.');
+                                        }
+
+                                        // Validate last name
+                                        if (lname === '') {
+                                            showError('lnameError', 'Please enter your last name.');
+                                        }
+
+                                        // Validate country
+                                        if (country === '') {
+                                            showError('countryError', 'Please select your country.');
+                                        }
+
+                                        // Validate address
+                                        if (houseName === '') {
+                                            showError('houseNameError', 'Please enter your address.');
+                                        }
+
+                                        // Validate city
+                                        if (city === '') {
+                                            showError('cityError', 'Please enter your city or town.');
+                                        }
+
+                                        // Validate state
+                                        if (state === '') {
+                                            showError('stateError', 'Please enter your state.');
+                                        }
+
+                                        // Validate pincode
+                                        if (pincode === '') {
+                                            showError('pincodeError', 'Please enter your postcode or ZIP.');
+                                        } else if (!/^\d{6}$/.test(pincode)) {
+                                            showError('pincodeError', 'Please enter a valid 6-digit pincode.');
+                                        }
+
+                                        // Validate phone
+                                        if (phone === '') {
+                                            showError('phoneError', 'Please enter your phone number.');
+                                        } else if (!/^\d{10}$/.test(phone)) {
+                                            showError('phoneError', 'Please enter a valid 10-digit phone number.');
+                                        }
+
+                                        // Validate email
+                                        if (email === '') {
+                                            showError('emailError', 'Please enter your email address.');
+                                        } else if (!isValidEmail(email)) {
+                                            showError('emailError', 'Please enter a valid email address.');
+                                        }
+
+                                        // Add more validations as needed...
+
+                                        // Check if there are any errors
+                                        return !hasErrors();
+                                    }
+
+                                    function showError(id, message) {
+                                        var errorElement = document.getElementById(id);
+                                        if (errorElement) {
+                                            errorElement.innerHTML = message;
+                                        }
+                                    }
+
+                                    function clearErrors() {
+                                        var errorElements = document.querySelectorAll('.error');
+                                        errorElements.forEach(function(element) {
+                                            element.innerHTML = '';
+                                        });
+                                    }
+
+                                    function hasErrors() {
+                                        var errorElements = document.querySelectorAll('.error');
+                                        for (var i = 0; i < errorElements.length; i++) {
+                                            if (errorElements[i].innerHTML !== '') {
+                                                return true;
+                                            }
+                                        }
+                                        return false;
+                                    }
+
+                                    function isValidEmail(email) {
+                                        // Add email validation logic here
+                                        return true;
+                                    }
+                                </script>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </section>
+    </main>
+
+    <!-- Vendor JS-->
+    <script src="assets/js/vendor/modernizr-3.6.0.min.js"></script>
+    <script src="assets/js/vendor/jquery-3.6.0.min.js"></script>
+    <script src="assets/js/vendor/jquery-migrate-3.3.0.min.js"></script>
+    <script src="assets/js/vendor/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/plugins/slick.js"></script>
+    <script src="assets/js/plugins/jquery.syotimer.min.js"></script>
+    <script src="assets/js/plugins/wow.js"></script>
+    <script src="assets/js/plugins/jquery-ui.js"></script>
+    <script src="assets/js/plugins/perfect-scrollbar.js"></script>
+    <script src="assets/js/plugins/magnific-popup.js"></script>
+    <script src="assets/js/plugins/select2.min.js"></script>
+    <script src="assets/js/plugins/waypoints.js"></script>
+    <script src="assets/js/plugins/counterup.js"></script>
+    <script src="assets/js/plugins/jquery.countdown.min.js"></script>
+    <script src="assets/js/plugins/images-loaded.js"></script>
+    <script src="assets/js/plugins/isotope.js"></script>
+    <script src="assets/js/plugins/scrollup.js"></script>
+    <script src="assets/js/plugins/jquery.vticker-min.js"></script>
+    <!-- Template JS -->
+    <script src="assets/js/maind134.js?v=3.4"></script>
+    <script src="assets/js/shopd134.js?v=3.4"></script>
+</body>
+
+</html>

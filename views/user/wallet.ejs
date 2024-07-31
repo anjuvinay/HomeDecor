@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Decor</title>
+    <link rel="stylesheet" href="assets/css/maind134.css?v=3.4">
+    <link rel="stylesheet" href="/path/to/your/styles.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">
+</head>
+<body>
+    <%- include('userHeader') %>
+    <main class="main">
+        <div class="page-header breadcrumb-wrap">
+            <div class="container">
+                <div class="breadcrumb">
+                    <a href="index.html" rel="nofollow">Home</a>
+                    <span></span> Shop
+                    <span></span> Wallet
+                </div>
+            </div>
+        </div>
+
+        <!-- Wallet Information Container -->
+        <div class="container wallet-container">
+            <section class="wallet-balance">
+                <h2>Wallet Balance</h2>
+                <div class="balance">
+                    <p><strong>Balance:</strong> ₹ <%= user.wallet.toFixed(2) %></p>
+                </div>
+            </section>
+           
+        </div>
+
+        <!-- Transaction History Container (Separate from Wallet Information) -->
+        <div class="container transaction-container" style="margin-bottom: 5%;">
+            <section class="wallet-transactions">
+                <h2 class="tio" style="margin-bottom: 3%;">Transaction History</h2>
+                <table id="transactionsTable" class="display">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Debited/Credited</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% transactions.forEach(transaction => { %>
+                            <tr>
+                                <td><%= new Date(transaction.orderDate).toLocaleDateString('en-US') %></td>
+                                <td>₹ <%= transaction.amount.toFixed(2) %></td>
+                                <td>
+                                    <%= transaction.type %>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                    
+                </table>
+            </section>
+        </div>
+    </main>
+    <%- include('footer') %>
+
+    <!-- Include jQuery and DataTables scripts -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#transactionsTable').DataTable();
+        });
+    </script>
+</body>
+</html>

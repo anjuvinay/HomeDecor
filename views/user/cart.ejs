@@ -1,0 +1,263 @@
+﻿<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Home Decor</title>
+    <!-- Template CSS -->
+    <link rel="stylesheet" href="assets/css/maind134.css?v=3.4">
+</head>
+
+<body>
+    <%- include('userHeader') %>
+    <main class="main">
+        <div class="page-header breadcrumb-wrap">
+            <div class="container">
+                <div class="breadcrumb">
+                    <a href="index.html" rel="nofollow">Home</a>
+                    <span></span> Shop
+                    <span></span> Your Cart
+                </div>
+            </div>
+        </div>
+        <section class="mt-50 mb-50">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="table-responsive">
+                            <table class="table shopping-summery text-center clean">
+                                <tbody>
+                                    <% if (user && user.cart) { %>
+                                        <% if (message) { %>
+                                            <h4 class="text-danger text-center"><%= message %></h4><br>
+                                        <% } %>
+                                        <% if (user.cart.length) { %>
+                                            <thead>
+                                                <tr class="main-heading">
+                                                    <th scope="col">Image</th>
+                                                    <th scope="col">Name</th>
+                                                    <th scope="col">Price</th>
+                                                    <th scope="col">Discount</th>
+                                                    <th scope="col">Sale Price</th>
+                                                    <th scope="col">Quantity</th>
+                                                    <th scope="col">Subtotal</th>
+                                                    <th scope="col">Stock</th>
+                                                    <th scope="col">Remove</th>
+                                                </tr>
+                                            </thead>
+                                            <% user.cart.forEach((item, i) => { %>
+                                                <tr>
+                                                    <td class="image product-thumbnail"><img src="<%= item.productId.image[0] %>" alt="#"></td>
+                                                    <td class="product-des product-name">
+                                                        <h5 class="product-name"><a href="shop-product-right.html" style="color: rgb(21, 82, 74);"><%= item.productId.title %></a></h5>
+                                                    </td>
+                                                    <td class="price" data-title="Original Price"><span>₹<%= item.productId.regularPrice.toFixed(2) %></span></td>
+                                                    <td class="discount" data-title="Discount"><span><%= Math.max(item.productId.discountPercentage.toFixed(2), item.productId.catDiscountPercentage) %>%</span></td>
+                                                    <td class="price" data-title="Sale Price"><span>₹<%= item.productId.salePrice.toFixed(2) %></span></td>
+                                                    <td class="text-center" data-title="Quantity">
+                                                        <div class="detail-qty border radius  m-auto">
+                                                            <a href="#" class="qty-up"
+                                                                onclick="updateQuantity('<%= i %>', 'increase','<%=userCart.cart[i].productId.quantity%>')">
+                                                            <img src="/assets/icons/caret-up .svg" style="width:1rem; height:1rem;"></a>
+                                                            <span class="qty-val" id="quantity<%= i %>" >
+                                                                <%= userCart.cart[i].quantity || 1 %>
+                                                            </span>
+                                                            <a href="#" class="qty-down"
+                                                                onclick="updateQuantity('<%= i %>', 'decrease','<%=userCart.cart[i].productId.quantity%>')">
+                                                                <img src="/assets/icons/caret-down.svg" style="width:1rem; height:1rem;"></a>
+                                                              
+                                                                    
+                                                        </div>
+                                            
+                                                        <div id="messageContainer<%= i %>" class="text-center text-danger mt-3"></div>
+
+                                                    </td>
+                                                    <td class="text-right" data-title="Subtotal">
+                                                        <span id="subtotal<%= i %>"><%= (item.productId.salePrice * item.quantity).toFixed(2) %></span>
+                                                    </td>
+                                                    <td>
+                                                        <% if (item.productId.quantity > 0) { %>
+                                                            <span class="text-success"><%= item.productId.quantity %> Items In Stock.</span>
+                                                        <% } else { %>
+                                                            <span class="text-danger">Out of Stock.</span>
+                                                        <% } %>
+                                                    </td>
+                                                    <td class="action" data-title="Remove">
+                                                        <a href="/deleteFromCart?id=<%= item.productId._id %>" class="button button-add-to-cart">Remove <i class="fi-rs-trash"></i></a>
+                                                    </td>
+                                                </tr>
+                                                <input type="hidden" value="<%= item.productId.salePrice %>" id="salePrice<%= i %>">
+                                            <% }); %>
+                                        <% } else { %>
+                                            <span class="text-center"><h4 class="text-danger">Cart is empty</h4></span>
+                                        <% } %>
+                                    <% } %>
+                                    <script>
+                                        window.onload = function () {
+                                            updateTotal();
+                                        };
+
+                                        async function updateQuantity(index, action, maxLimit) {
+                                            const quantityElement = document.getElementById(`quantity${index}`);
+                                            const subtotalElement = document.getElementById(`subtotal${index}`);
+                                            const price = document.getElementById(`salePrice${index}`).value;
+                                            const messageContainer = document.getElementById(`messageContainer${index}`);
+                                              
+
+                                            let quantity = parseInt(quantityElement.innerText);
+                                            let message = '';
+
+                                            if (action === 'increase' && quantity < maxLimit && quantity < 10) {
+                                                quantity++;
+                                            } else if (action === 'decrease' && quantity > 1) {
+                                                quantity--;
+                                            } else {
+                                            if (quantity >= maxLimit) {
+                                             message = `Only ${maxLimit} items in stock.`;
+                                            } else if (quantity >= 10) {
+                                            message = 'Maximum quantity you can order is 10.';
+                                            }
+                                            }
+
+                                            await fetch(`/updateQuantity/${quantity}/${index}/`, {
+                                                method: 'POST',
+                                            });
+
+                                            // Update quantity in the DOM
+                                            quantityElement.innerText = quantity;
+
+                                            // Update subtotal in the DOM
+                                            subtotalElement.innerText = (price * quantity).toFixed(2);
+
+                                            // Call a function to update the total (if needed)
+                                            updateTotal();
+
+                                            // Display the message
+                                            displayMessage(message,index);
+                                        }
+
+                                        function displayMessage(message,index) {
+                                        const messageContainer = document.getElementById(`messageContainer${index}`);
+                                        messageContainer.innerText = message;
+
+                                       if (message) {
+                                        setTimeout(() => {
+                                        messageContainer.innerText = '';
+                                        }, 4000); // Clear message after 4 seconds
+                                         }         
+                                        }
+
+                                        function updateTotal() {
+    const subtotals = document.querySelectorAll('[id^="subtotal"]');
+    let total = 0;
+    let originalTotal = 0;
+    let totalDiscount = 0;
+
+    subtotals.forEach((subtotal, index) => {
+        const quantity = parseInt(document.getElementById(`quantity${index}`).innerText);
+        const regularPrice = parseFloat(document.querySelectorAll('[data-title="Original Price"] span')[index].innerText.replace('₹', ''));
+        const salePrice = parseFloat(document.querySelectorAll('[data-title="Sale Price"] span')[index].innerText.replace('₹', ''));
+
+        const subtotalValue = parseFloat(subtotal.innerText);
+        total += subtotalValue;
+        originalTotal += regularPrice * quantity;
+        totalDiscount += (regularPrice - salePrice) * quantity;
+    });
+
+    const totalPercentageDiscount = (totalDiscount / originalTotal) * 100;
+
+    // Assuming totalElement is the element where you display the total
+    document.getElementById('totalAmount').innerText = total.toFixed(2); // Adjust as needed
+    document.getElementById('originalTotal').innerText = originalTotal.toFixed(2);
+    document.getElementById('totalDiscount').innerText = totalDiscount.toFixed(2);
+    document.getElementById('totalPercentageDiscount').innerText = totalPercentageDiscount.toFixed(2) + '%';
+}
+                                    </script>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="cart-action text-end">
+                            <a class="button button-add-to-cart" href="/"><i class="fi-rs-shopping-bag mr-10"></i>Continue Shopping</a>
+                        </div>
+                        <div class="divider center_icon mt-50 mb-50"></div>
+                        <div class="row mb-50">
+                            <div class="col-lg-6 col-md-12"></div>
+                            <div class="col-lg-6 col-md-12">
+                                <div class="border p-md-4 p-30 border-radius cart-totals">
+                                    <div class="heading_s1 mb-3">
+                                        <h4>Cart Totals</h4>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table">
+                                            <tbody>
+                                                <tr>
+                                                    <td class="cart_total_label">Original Total</td>
+                                                    <td class="cart_total_amount"><strong><span class="font-xl fw-900 text-brand" id="originalTotal"></span></strong></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="cart_total_label">Total Discount</td>
+                                                    <td class="cart_total_amount"><strong><span class="font-xl fw-900 text-brand" id="totalDiscount"></span></strong></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="cart_total_label">Total Percentage Discount</td>
+                                                    <td class="cart_total_amount"><strong><span class="font-xl fw-900 text-brand" id="totalPercentageDiscount"></span></strong></td>
+                                                </tr>
+                                              
+                                                <tr>
+                                                    <td class="cart_total_label">Total</td>
+                                                    <td class="cart_total_amount"><strong><span class="font-xl fw-900 text-brand totalAmount" id="totalAmount"></span></strong></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <% if (userCart.cart.length > 0) { %>
+                                        <a href="/checkOut" class="button button-add-to-cart"> <i class="fi-rs-box-alt mr-10"></i> Proceed To CheckOut</a>
+                                    <% } else { %>
+                                        <a onclick="sweet()" class="button button-add-to-cart"> <i class="fi-rs-box-alt mr-10"></i> Proceed To CheckOut</a>
+                                    <% } %>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <script>
+            function sweet() {
+                Swal.fire({
+                    icon: "error",
+                    title: "Oops...",
+                    text: "Cart is empty",
+                    footer: '<a href="/">Go to Home</a>'
+                });
+            }
+        </script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    </main>
+    <%- include('footer') %>
+
+    <!-- Vendor JS-->
+    <script src="assets/js/vendor/modernizr-3.6.0.min.js"></script>
+    <script src="assets/js/vendor/jquery-3.6.0.min.js"></script>
+    <script src="assets/js/vendor/jquery-migrate-3.3.0.min.js"></script>
+    <script src="assets/js/vendor/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/plugins/slick.js"></script>
+    <script src="assets/js/plugins/jquery.syotimer.min.js"></script>
+    <script src="assets/js/plugins/wow.js"></script>
+    <script src="assets/js/plugins/jquery-ui.js"></script>
+    <script src="assets/js/plugins/perfect-scrollbar.js"></script>
+    <script src="assets/js/plugins/magnific-popup.js"></script>
+    <script src="assets/js/plugins/select2.min.js"></script>
+    <script src="assets/js/plugins/waypoints.js"></script>
+    <script src="assets/js/plugins/counterup.js"></script>
+    <script src="assets/js/plugins/jquery.countdown.min.js"></script>
+    <script src="assets/js/plugins/images-loaded.js"></script>
+    <script src="assets/js/plugins/isotope.js"></script>
+    <script src="assets/js/plugins/scrollup.js"></script>
+    <script src="assets/js/plugins/jquery.vticker-min.js"></script>
+    <!-- Template JS -->
+    <script src="assets/js/maind134.js?v=3.4"></script>
+    <script src="assets/js/shopd134.js?v=3.4"></script>
+</body>
+</html>

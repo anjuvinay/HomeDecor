@@ -1,0 +1,109 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Home Decor</title>
+    <!-- Template CSS -->
+    <link href="/assetsb/css/main.css" rel="stylesheet" type="text/css" />
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css">
+</head>
+<body>
+    <div class="screen-overlay"></div>
+    <%- include('leftnav') %>
+    <main class="main-wrap">
+        <%- include('header') %>
+        <section class="content-main">
+            <div class="content-header">
+                <div>
+                    <h2 class="content-title card-title">Category Offers</h2>
+                    <p>Add, edit or delete offers in category </p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <form action="/admin/addCategoryOffer?categoryId=<%= specificCategory._id ? specificCategory._id : '' %>" method="post">
+                                <div class="mb-4">
+                                    <label for="product_name" class="form-label">Name</label>
+                                    <input type="text" placeholder="Type here" class="form-control" id="product_name" value="<%= specificCategory.categoryName %>"/>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="product_slug" class="form-label">Discount in percentage</label>
+                                    <input type="number" placeholder="Type here" class="form-control" id="product_slug" name="discount" value="<%= specificCategory.discount %>"/>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label">Expiry Date</label>
+                                    <input type="date" name="expiry" value="<%= specificCategory.expiry ? specificCategory.expiry.toISOString().split('T')[0] : '' %>">
+                                </div>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary">Apply Offer</button>
+                                </div>
+                            </form>
+                            
+                        </div>
+                        <div class="col-md-9">
+                            <div class="table-responsive">
+                                <table id="categoryTable" class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>Name</th>
+                                            <th>Discount</th>
+                                            <th>Expiry</th>
+                                            <th>Offer Status</th>
+                                            <th class="text-end">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% for (let i = 0; i < category.length; i++) { %>
+                                        <tr>
+                                            <td class="text-center"><%= i+1 %> </td>
+                                            <td><b><%= category[i].categoryName %></b></td>
+                                            <td><%= category[i].discount %>%</td>
+                                            <td><%= category[i].formattedExpiry %></td>
+                                            <% if (category[i].offerStatus) { %>
+                                                <td class="text-success">Active</td>
+                                            <% } else { %>
+                                                <td class="text-danger">Inactive</td>
+                                            <% } %>
+                                            <td class="text-end">
+                                                <% if (category[i].discount > 0) { %>
+                                                <a  href="/admin/editCategoryOffer?categoryId=<%= category[i]._id %>">
+                                                    <img style="height: 1.5rem; width: 1.5rem;" src="/assetsb/imgs/icons/pencil.png">
+                                                </a>&nbsp;&nbsp;&nbsp;
+                                                <a  href="/admin/deleteCategoryOffer?categoryId=<%= category[i]._id %>">
+                                                    <img style="height: 1.5rem; width: 1.5rem;" src="/assetsb/imgs/icons/bin (1).png"></a>
+                                                <% } else { %>
+                                                <a class="button button-gradient" href="/admin/addCategoryOffer?categoryId=<%= category[i]._id %>">Add Offer</a>
+                                                <% } %>
+                                            </td>
+                                        </tr>
+                                        <% } %>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div> <!-- .col// -->
+                    </div> <!-- .row // -->
+                </div> <!-- card body .// -->
+            </div> <!-- card .// -->
+        </section> <!-- content-main end// -->
+        <%- include('footer') %>
+    </main>
+    <script src="/assetsb/js/vendors/jquery-3.6.0.min.js"></script>
+    <script src="/assetsb/js/vendors/bootstrap.bundle.min.js"></script>
+    <script src="/assetsb/js/vendors/select2.min.js"></script>
+    <script src="/assetsb/js/vendors/perfect-scrollbar.js"></script>
+    <script src="/assetsb/js/vendors/jquery.fullscreen.min.js"></script>
+    <!-- DataTables JS -->
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js"></script>
+    <!-- Main Script -->
+    <script src="/assetsb/js/main.js" type="text/javascript"></script>
+    <script>
+        $(document).ready(function() {
+            $('#categoryTable').DataTable();
+        });
+    </script>
+</body>
+</html>

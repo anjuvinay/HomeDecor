@@ -1,0 +1,91 @@
+﻿<!DOCTYPE html>
+<html class="no-js" lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Home Decor</title>
+    <link rel="stylesheet" href="assets/css/maind134.css?v=3.4">
+</head>
+<body>
+    <%- include('userHeader') %>
+    <main class="main">
+        <div class="page-header breadcrumb-wrap">
+            <div class="container">
+                <div class="breadcrumb">
+                    <a href="index.html" rel="nofollow">Home</a>
+                    <span></span> Shop
+                    <span></span> Wishlist
+                </div>
+            </div>
+        </div>
+        <section class="mt-100 mb-150">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="table-responsive">
+                            <% if (user) { %>
+                                <% if (!wishlist || wishlist.products.length === 0) { %>
+                                    <p>No items in the wishlist.</p>
+                                <% } else { %>
+                                    <table class="table shopping-summery text-center">
+                                        <thead>
+                                            <tr class="main-heading">
+                                                <th scope="col" colspan="2">Product</th>
+                                                <th scope="col">Original Price</th>
+                                                <th scope="col">Discount</th>
+                                                <th scope="col">Sale Price</th>
+                                                <th scope="col">Stock</th>
+                                                <th scope="col">Action</th>
+                                                <th scope="col">Remove</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% wishlist.products.forEach(item => { %>
+                                                <tr>
+                                                    <td class="image product-thumbnail"><img src="/<%= item.productId.image[0] %>" alt="#"></td>
+                                                    <td class="product-des product-name">
+                                                        <h5 class="product-name" style="color: rgb(15, 99, 78);"><%= item.productId.title %></h5>
+                                                    </td>
+                                                    <td class="price" data-title="Original Price"><span>₹<%= item.productId.regularPrice %></span></td>
+                                                    <td class="discount" data-title="Discount"><span><%= item.productId.discountPercentage %>%</span></td>
+                                                    <td class="price" data-title="Sale Price"><span>₹<%= item.productId.salePrice %></span></td>
+                                                    <td class="text-center" data-title="Stock">
+                                                        <% if (item.productId.quantity >= 1) { %>
+                                                            <span class="color3">In Stock</span>
+                                                        <% } else { %>
+                                                            <span class="text-danger font-weight-bold">Out of stock</span>
+                                                        <% } %>
+                                                    </td>
+                                                    <td class="text-right" data-title="Cart">
+                                                        <% if (item.productId.quantity >= 1) { %>
+                                                            <a href="/addToCart?productId=<%= item.productId._id %>" class="button button-add-to-cart">Add to cart</a>
+                                                        <% } else { %>
+                                                            <span class="text-success">Not available now.</span>
+                                                        <% } %>
+                                                    </td>
+                                                    <td class="action" data-title="Remove">
+                                                        <a href="/deleteFromWishlist?productId=<%= item.productId._id %>">
+                                                            <img src="/assetsb/imgs/icons/bin.png" style="height: 2rem; width: 2rem;">
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            <% }) %>
+                                        </tbody>
+                                    </table>
+                                <% } %>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <%- include('footer') %>
+    <script src="assets/js/vendor/modernizr-3.6.0.min.js"></script>
+    <script src="assets/js/vendor/jquery-3.6.0.min.js"></script>
+    <script src="assets/js/vendor/jquery-migrate-3.3.0.min.js"></script>
+    <script src="assets/js/vendor/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/plugins/slick.js"></script>
+    <script src="assets/js/plugins/jquery.syotimer.min.js"></script>
+    <script src="assets/js/plugins/wow.js"></script>
+</body>
+</html>
