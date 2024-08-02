@@ -28,7 +28,81 @@ module.exports = {
     
     
     
-    addNewProduct : async (req, res) => {
+    // addNewProduct : async (req, res) => {
+    //     try {
+    //         let salePrice;
+    //         if (req.body.discountPercentage.trim() > 0) {
+    //             salePrice = req.body.regularPrice - (req.body.regularPrice.trim() * req.body.discountPercentage / 100);
+    //         } else {
+    //             salePrice = req.body.regularPrice.trim();
+    //         }
+    
+    //         const imagePromises = req.files.map(async (file) => {
+    //             const imagePath = `uploads/${file.filename}`;
+    //             const resizedImagePath = `uploads/resized_${file.filename}`;
+    //             await sharp(imagePath)
+    //                 .resize({ width: 400, height: 400 })
+    //                 .toFile(resizedImagePath);
+    
+    
+    //                 //Remove the original uploaded image
+    //                 fs.unlink(imagePath, (err) => {
+    //                     if (err) {
+    //                         console.error('Failed to delete original image', err);
+    //                     } else {
+    //                         console.log('Original image deleted successfully');
+    //                     }
+    //                 });
+    
+    //             return resizedImagePath;
+    //         });
+    
+    //         const resizedImageUrls = await Promise.all(imagePromises);
+    
+    
+    
+    //         const productData = {
+    //             title: req.body.title.trim(),
+    //             material: req.body.material.trim(),
+    //             color: req.body.color.trim(),
+    //             shape: req.body.shape.trim(),
+    //             brandId: req.body.brand.trim(),
+    //             description: req.body.description.trim(),
+    //             regularPrice: req.body.regularPrice.trim(),
+    //             discountPercentage: req.body.discountPercentage.trim(),
+    //             bestDiscount: req.body.discountPercentage.trim(),
+    //             discountPrice: salePrice,
+    //             salePrice: salePrice,
+    //             quantity: req.body.quantity.trim(),
+    //             categoryId: req.body.category.trim(),
+    //             rating: req.body.rating.trim(),
+    //             featured:req.body.featured.trim(),
+    //             image: resizedImageUrls,
+    //         };
+    
+    //         const product = new Product(productData);
+    
+    //         const savedProduct = await product.save();
+    
+    //         if (savedProduct) {
+    //             res.redirect('/admin/productsList');
+    //         } else {
+    //             console.log('Error saving product');
+    //             res.status(500).send('Error saving product');
+    //         }
+    //     } catch (error) {
+    //         console.error(error.message);
+    //         res.redirect('/500')
+            
+    //     }
+    // },
+
+
+
+
+   
+    
+    addNewProduct: async (req, res) => {
         try {
             let salePrice;
             if (req.body.discountPercentage.trim() > 0) {
@@ -37,29 +111,37 @@ module.exports = {
                 salePrice = req.body.regularPrice.trim();
             }
     
-            const imagePromises = req.files.map(async (file) => {
+            const imagePromises = req.files.map(async (file, index) => {
                 const imagePath = `uploads/${file.filename}`;
                 const resizedImagePath = `uploads/resized_${file.filename}`;
+                const cropX = parseInt(req.body[`cropX${index}`], 10);
+                const cropY = parseInt(req.body[`cropY${index}`], 10);
+                const cropWidth = parseInt(req.body[`cropWidth${index}`], 10);
+                const cropHeight = parseInt(req.body[`cropHeight${index}`], 10);
+    
+                if (isNaN(cropX) || isNaN(cropY) || isNaN(cropWidth) || isNaN(cropHeight)) {
+                    console.error('Invalid crop coordinates:', { cropX, cropY, cropWidth, cropHeight });
+                    throw new Error('Invalid crop coordinates');
+                }
+    
                 await sharp(imagePath)
+                    .extract({ left: cropX, top: cropY, width: cropWidth, height: cropHeight })
                     .resize({ width: 400, height: 400 })
                     .toFile(resizedImagePath);
     
-    
-                    //Remove the original uploaded image
-                    fs.unlink(imagePath, (err) => {
-                        if (err) {
-                            console.error('Failed to delete original image', err);
-                        } else {
-                            console.log('Original image deleted successfully');
-                        }
-                    });
+                // Remove the original uploaded image
+                fs.unlink(imagePath, (err) => {
+                    if (err) {
+                        console.error('Failed to delete original image', err);
+                    } else {
+                        console.log('Original image deleted successfully');
+                    }
+                });
     
                 return resizedImagePath;
             });
     
             const resizedImageUrls = await Promise.all(imagePromises);
-    
-    
     
             const productData = {
                 title: req.body.title.trim(),
@@ -76,7 +158,7 @@ module.exports = {
                 quantity: req.body.quantity.trim(),
                 categoryId: req.body.category.trim(),
                 rating: req.body.rating.trim(),
-                featured:req.body.featured.trim(),
+                featured: req.body.featured.trim(),
                 image: resizedImageUrls,
             };
     
@@ -92,10 +174,13 @@ module.exports = {
             }
         } catch (error) {
             console.error(error.message);
-            res.redirect('/500')
-            
+            res.redirect('/500');
         }
     },
+    
+    
+    
+
     
     
     

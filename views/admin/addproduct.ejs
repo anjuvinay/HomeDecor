@@ -6,15 +6,14 @@
     <!-- Template CSS -->
     <link href="/assetsb/css/main.css" rel="stylesheet" type="text/css" />
     <link href="/assets/css/styles1.css" rel="stylesheet" type="text/css" />
+    <link href="https://unpkg.com/cropperjs/dist/cropper.css" rel="stylesheet" />
     <style> 
-       .main-content {
+        .main-content {
             margin-left: 15rem; /* Adjust based on your leftnav width */
-           
         }
         .header-container {
             background-color: white; /* Set header color to white */
             padding: 20px; /* Adjust padding as needed */
-           
         }
         .content-main {
             padding: 20px;
@@ -30,12 +29,9 @@
 </head>
 
 <body>
-   
     <%- include('leftnav') %>
     <%- include('header') %>
-   
     <div class="main-content">
-       
         <div class="header-container">
             <section class="content-main">
                 <form action="/admin/addProduct" method="post" enctype="multipart/form-data" onsubmit="return validateForm()">
@@ -110,10 +106,8 @@
                                     <h4>Images</h4>
                                 </div>
                                 <div class="card-body">
-                                    <div class="input-upload">
-                                        <img src="/assets/images/themes/upload.svg" alt="">
-                                        <input class="form-control" type="file" name="image" accept="image/*" multiple id="fileInput" onchange="checkFileCount()" required>
-                                    </div>
+                                    <div id="imagePreviews"></div>
+                                    <input class="form-control" type="file" name="image" accept="image/*" multiple id="fileInput" onchange="previewImages(event)" required>
                                 </div>
                             </div> <!-- card end// -->
                             <div class="card mb-4">
@@ -162,24 +156,46 @@
                     </div>
                     <button type="submit" class="btn btn-md rounded font-sm hover-up btn-submit">Submit</button>
                 </form>
+                <script src="https://unpkg.com/cropperjs"></script>
                 <script>
-                    function validateForm() {
-                        var title = document.querySelector('input[name="title"]').value.trim();
-                        if (title === '') {
-                            alert('Invalid Product title');
-                            return false;
-                        }
-                        return true;
-                    }
-                </script>
-                <script>
-                    function checkFileCount() {
-                        var fileInput = document.getElementById('fileInput');
-                        var maxFiles = 5; // Set the maximum number of allowed files
-                        if (fileInput.files.length > maxFiles) {
-                            alert('You can only select up to ' + maxFiles + ' files.');
-                            // Clear the selected files to enforce the limit
-                            fileInput.value = '';
+                    let cropperInstances = [];
+
+                    function previewImages(event) {
+                        const files = event.target.files;
+                        const imagePreviewsContainer = document.getElementById('imagePreviews');
+                        imagePreviewsContainer.innerHTML = ''; // Clear existing previews
+
+                        if (files && files.length > 0) {
+                            Array.from(files).forEach((file, index) => {
+                                const reader = new FileReader();
+                                reader.onload = function(e) {
+                                    const imagePreview = document.createElement('div');
+                                    imagePreview.innerHTML = `
+                                        <img id="imagePreview${index}" src="${e.target.result}" style="max-width: 100%;">
+                                        <input type="hidden" name="cropX${index}">
+                                        <input type="hidden" name="cropY${index}">
+                                        <input type="hidden" name="cropWidth${index}">
+                                        <input type="hidden" name="cropHeight${index}">
+                                    `;
+                                    imagePreviewsContainer.appendChild(imagePreview);
+
+                                    const image = document.getElementById(`imagePreview${index}`);
+                                    const cropper = new Cropper(image, {
+                                        aspectRatio: 1,
+                                        viewMode: 1,
+                                        autoCropArea: 1,
+                                        crop(event) {
+                                            document.querySelector(`input[name="cropX${index}"]`).value = event.detail.x;
+                                            document.querySelector(`input[name="cropY${index}"]`).value = event.detail.y;
+                                            document.querySelector(`input[name="cropWidth${index}"]`).value = event.detail.width;
+                                            document.querySelector(`input[name="cropHeight${index}"]`).value = event.detail.height;
+                                        },
+                                    });
+
+                                    cropperInstances.push(cropper);
+                                };
+                                reader.readAsDataURL(file);
+                            });
                         }
                     }
                 </script>
