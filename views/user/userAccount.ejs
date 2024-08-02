@@ -6,7 +6,12 @@
     <title>Home Decor</title>
     <link rel="stylesheet" href="assets/css/maind134.css?v=3.4">
      <link href="/assets/css/userstyle.css" rel="stylesheet" type="text/css" />
+     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
      <style>
+   
         body, html {
     overflow-x: hidden;
 }
@@ -221,7 +226,7 @@
     
                                                 <div class="card-body">
                                                     <div class="table-responsive">
-                                                        <table class="table" > 
+                                                        <table class="table" id="ordersTable" > 
                                                             <thead>
                                                                 <tr>
                                                                     <th>Order</th>
@@ -239,7 +244,8 @@
                                                                         <td>ORD<%=orders[i].orderId%>
                                                                         </td>
                                                                         <td>
-                                                                            <%=orders[i].orderDate%>
+                                                                            <%= new Intl.DateTimeFormat('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(orders[i].orderDate)) %>
+                                                                          
                                                                         </td>
                                                                         <%if(orders[i].orderstatus=='Cancelled' ||
                                                                             orders[i].orderstatus=='Returned' ){%>
@@ -354,8 +360,59 @@
                                                         </div>
                                                     </div>
                                                 </form>
-                                                
                                                 <script>
+                                                    function validateForm() {
+                                                        var usernameField = document.forms["enq"]["name"];
+                                                        var mobileNumberField = document.forms["enq"]["mobile"];
+                                                        
+                                                        var username = usernameField.value.trim();
+                                                        var mobileNumber = mobileNumberField.value.trim();
+                                                
+                                                        // Update form fields with trimmed values
+                                                        usernameField.value = username;
+                                                        mobileNumberField.value = mobileNumber;
+                                                
+                                                        // Name validation
+                                                        var nameRegex = /^[a-zA-Z\s]+$/;
+                                                        if (username === '' || !nameRegex.test(username)) {
+                                                            Swal.fire({
+                                                                icon: 'error',
+                                                                title: 'Invalid Name',
+                                                                text: 'Please enter a valid name without numbers or special characters.',
+                                                                confirmButtonText: 'Okay'
+                                                            });
+                                                            return false;
+                                                        }
+                                                
+                                                        var mobileNumberRegex = /^[1-9]\d{9}$/;
+                                                        if (!mobileNumberRegex.test(mobileNumber)) {
+                                                        Swal.fire({
+                                                          icon: 'error',
+                                                          title: 'Invalid Mobile Number',
+                                                          text: 'Please enter a valid 10-digit mobile number that does not start with 0.',
+                                                          confirmButtonText: 'Okay'
+                                                              });
+                                                          return false;
+                                                                }
+
+                                                        // Check if mobile number is not all the same digits
+                                                        var allSameDigits = /^(.)\1+$/.test(mobileNumber);
+                                                        if (allSameDigits) {
+                                                             Swal.fire({
+                                                                icon: 'error',
+                                                                title: 'Invalid Mobile Number',
+                                                                text: 'Mobile number cannot be made up of all the same digits.',
+                                                                confirmButtonText: 'Okay'
+                                                                  });
+                                                                return false;
+                                                         }
+                                                
+                                                        return true;
+                                                    }
+                                                </script>
+                                                
+                                                
+                                                <!-- <script>
                                                     function validateForm() {
                                                         var username = document.forms["enq"]["name"].value.trim();
                                                         var mobileNumber = document.forms["enq"]["mobile"].value.trim();
@@ -372,7 +429,7 @@
                                                 
                                                         return true;
                                                     }
-                                                </script>
+                                                </script> -->
                                                 
                                                 
 
@@ -511,18 +568,21 @@
                     </div>
                 </div>
             </div>
-            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-<script>
-    $(document).ready(function () {
-        new DataTable('#example');
+          
 
-})
-</script>
         </section>
     </main>
     <%- include('footer') %>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    
+    <script>
+        $(document).ready(function () {
+            $('#ordersTable').DataTable();
+        });
+    </script>
   
    
     <!-- Vendor JS-->

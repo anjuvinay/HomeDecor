@@ -70,6 +70,8 @@ userRoute.get('/deleteFromCart', auth.isLogin, productController.deleteFromCart)
 userRoute.post('/updateQuantity/:newQuantity/:index', auth.isLogin, productController.updateQuantity)
 
 
+
+
 //-----------------------------------------------coupon---------------------------------------->
 
 userRoute.get('/checkout', auth.isBlocked, auth.isLogin, productController.showCheckOut)

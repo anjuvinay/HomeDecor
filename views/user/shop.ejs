@@ -81,8 +81,9 @@
                                             <% } %>
                                             <div class="product-price">
                                                 <span>र<%= products[i].salePrice.toFixed(2) %></span>
+                                                <% if (products[i].bestDiscount != null) { %>
                                                 <span class="old-price">र<%= products[i].regularPrice.toFixed(0) %></span>
-                                                <% if (products[i].bestDiscount > 0) { %>
+                                              
                                                     <span class="text-muted"><%= products[i].bestDiscount.toFixed(0) %> % OFF</span>
                                                 <% } %>
                                             </div>

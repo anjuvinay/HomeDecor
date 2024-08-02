@@ -10,6 +10,8 @@ const methodOverride = require("method-override");
 const multer = require('multer')
 const nocache=require('nocache')
 const passport = require('passport');
+const flash = require('connect-flash');
+
 dbConnect()
 
 const userRoute = require('./routes/userRoute')
@@ -53,6 +55,14 @@ app.use(session({
     }
     
 }))
+
+app.use(flash());
+
+app.use((req, res, next) => {
+    res.locals.success_msg = req.flash('success_msg');
+    res.locals.error_msg = req.flash('error_msg');
+    next();
+});
 
 app.use(passport.initialize());
 app.use(passport.session());

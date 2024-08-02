@@ -372,28 +372,68 @@ module.exports = {
     },
 
 
+    // addToCart: async (req, res) => {
+    //     try {
+    //         const productId = req.query.productId;
+    //         const email = req.session.email;
+    //         const quantity = parseInt(req.body.quantity, 10) || 1;
+
+    //         const userData = await User.findOne({ email });
+    //         const productData = await Product.findById(productId);
+
+    //         if (!productData) {
+    //             res.status(404).send('Product not found');
+    //             return;
+    //         }
+
+    //         let cartItem = userData.cart.find(item => item.productId.toString() === productId);
+
+    //         if (cartItem) {
+    //             cartItem.quantity += quantity;
+    //         } else {
+    //             userData.cart.push({ productId, quantity });
+    //         }
+
+    //         await userData.save();
+    //         res.redirect('/cart');
+    //     } catch (error) {
+    //         console.log(error.message);
+    //         res.redirect('/500');
+    //     }
+    // },
+
+
+
     addToCart: async (req, res) => {
         try {
             const productId = req.query.productId;
             const email = req.session.email;
             const quantity = parseInt(req.body.quantity, 10) || 1;
-
+    
             const userData = await User.findOne({ email });
             const productData = await Product.findById(productId);
-
+    
             if (!productData) {
-                res.status(404).send('Product not found');
+                res.redirect('/cart?message=Product not found');
                 return;
             }
-
+    
             let cartItem = userData.cart.find(item => item.productId.toString() === productId);
-
+    
             if (cartItem) {
+                if (cartItem.quantity + quantity > productData.quantity) {
+                    res.redirect('/cart?message=Insufficient stock to add');
+                    return;
+                }
                 cartItem.quantity += quantity;
             } else {
+                if (quantity > productData.quantity) {
+                    res.redirect('/cart?message=Insufficient stock available');
+                    return;
+                }
                 userData.cart.push({ productId, quantity });
             }
-
+    
             await userData.save();
             res.redirect('/cart');
         } catch (error) {
@@ -401,6 +441,11 @@ module.exports = {
             res.redirect('/500');
         }
     },
+    
+    
+
+
+    
 
     showCart: async (req, res) => {
         try {
@@ -408,8 +453,10 @@ module.exports = {
             const userData = await User.findOne({ email }).populate('cart.productId');
             const categories = await Category.find({ is_active: true });
             const brands = await Brand.find({ is_active: true });
-            const message = req.query.message ?? '';
-
+            // const message = req.query.message ?? '';
+            const message = req.query.message || '';
+       
+           
             res.render('cart', { user: userData, userCart: userData, brands, categories, message });
         } catch (error) {
             console.log(error.message);

@@ -20,6 +20,9 @@ module.exports = {
         }
     },
 
+
+    
+
     addToWishlist: async (req, res) => {
         try {
             const id = req.query.id;
@@ -71,34 +74,92 @@ module.exports = {
         }
     },
 
+
     addToCart: async (req, res) => {
         try {
             const productId = req.query.productId;
             const email = req.session.email;
-            const cartItem = {
-                productId: productId,
-                quantity: 1
-            };
             const userData = await User.findOne({ email: email });
-
+            const productData = await Product.findById(productId);
+    
+            if (!productData || productData.quantity < 1) {
+                res.redirect('/cart?message=Product is out of stock&type=error');
+                return;
+            }
+    
             if (userData && userData.cart) {
-                await User.findOneAndUpdate(
-                    { email: email },
-                    { $push: { cart: cartItem } }
-                );
-
+                const existingProduct = userData.cart.find(item => item.productId.toString() === productId);
+                const newQuantity = existingProduct ? existingProduct.quantity + 1 : 1;
+    
+                if (newQuantity > productData.quantity) {
+                    res.redirect('/cart?message=Insufficient stock to add&type=error');
+                    return;
+                }
+    
+                if (existingProduct) {
+                    await User.findOneAndUpdate(
+                        { email: email, 'cart.productId': productId },
+                        { $inc: { 'cart.$.quantity': 1 } }
+                    );
+                } else {
+                    const cartItem = {
+                        productId: productId,
+                        quantity: 1
+                    };
+                    await User.findOneAndUpdate(
+                        { email: email },
+                        { $push: { cart: cartItem } }
+                    );
+                }
+    
                 await Wishlist.updateOne(
                     { userId: userData._id },
                     { $pull: { products: { productId: productId } } }
                 );
-
+    
                 res.redirect('/cart');
+                return;
             }
+    
+            res.redirect('/cart?message=Something went wrong&type=error');
         } catch (error) {
             console.log(error.message);
             res.redirect('/500');
         }
     },
+    
+    
+
+
+
+    // addToCart: async (req, res) => {
+    //     try {
+    //         const productId = req.query.productId;
+    //         const email = req.session.email;
+    //         const cartItem = {
+    //             productId: productId,
+    //             quantity: 1
+    //         };
+    //         const userData = await User.findOne({ email: email });
+
+    //         if (userData && userData.cart) {
+    //             await User.findOneAndUpdate(
+    //                 { email: email },
+    //                 { $push: { cart: cartItem } }
+    //             );
+
+    //             await Wishlist.updateOne(
+    //                 { userId: userData._id },
+    //                 { $pull: { products: { productId: productId } } }
+    //             );
+
+    //             res.redirect('/cart');
+    //         }
+    //     } catch (error) {
+    //         console.log(error.message);
+    //         res.redirect('/500');
+    //     }
+    // },
 
     deleteFromWishlist: async (req, res) => {
         try {
