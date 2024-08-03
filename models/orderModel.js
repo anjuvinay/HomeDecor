@@ -34,10 +34,34 @@ const orderSchema = mongoose.Schema({
             default:""
           }
     }],
-    addressIndex: {
-        type: Number,
-        default: 0,
-        required: true
+    shippingAddress: {
+        fname:{
+            type:String
+        },
+        lname:{
+            type:String
+        },
+        country:{
+            type:String
+        },
+        housename:{
+            type:String,               
+        },
+        city:{
+            type:String
+        },
+        state:{
+            type:String
+        },
+        pincode:{
+            type:Number
+        },
+        phone:{
+            type:Number
+        },
+        email:{
+            type:String
+        }
     },
     orderDate: {
         type: Date,

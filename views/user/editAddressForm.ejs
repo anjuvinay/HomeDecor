@@ -4,7 +4,6 @@
 <head>
     <meta charset="utf-8">
     <title>Home Decor</title>
-
     <!-- Template CSS -->
     <link rel="stylesheet" href="assets/css/maind134.css?v=3.4">
 </head>
@@ -33,7 +32,7 @@
                         <div class="mb-25">
                             <h4>Edit Address</h4>
                         </div>
-                        <form method="post" action="/editAddressForm?index=<%= index %>&checkout=<%= checkout %>" onsubmit="return validateForm()">
+                        <form method="post" action="/editAddressForm?addressId=<%= address._id %>&checkout=<%= checkout %>" onsubmit="return validateForm()">
                             <div class="form-group">
                                 <label for="fname">First Name <span class="required">*</span></label>
                                 <input type="text" id="fname" name="fname" required placeholder="First name *" value="<%= address.fname %>">
@@ -92,7 +91,6 @@
                         </form>
                     
                         <script>
-                            // Fetch country data from REST Countries API
                             async function fetchCountries() {
                                 try {
                                     const response = await fetch('https://restcountries.com/v3.1/all');
@@ -100,12 +98,11 @@
                                     const countrySelect = document.getElementById('country');
                                     countries.forEach(country => {
                                         const option = document.createElement('option');
-                                        option.value = country.name.common; // Use country name as value
-                                        option.textContent = country.name.common; // Use country name as display text
+                                        option.value = country.name.common;
+                                        option.textContent = country.name.common;
                                         countrySelect.appendChild(option);
                                     });
 
-                                    // Set the selected country from the address
                                     const selectedCountry = "<%= address.country %>";
                                     if (selectedCountry) {
                                         countrySelect.value = selectedCountry;
@@ -115,12 +112,9 @@
                                 }
                             }
                     
-                            // Call fetchCountries function when the page loads
                             window.onload = fetchCountries;
                     
-                            // Your existing JavaScript code with added phone number and pincode validation
                             function validateForm() {
-                                // Reset error messages
                                 clearErrors();
                     
                                 var fname = document.getElementById('fname').value.trim();
@@ -133,90 +127,42 @@
                                 var phone = document.getElementById('phone').value.trim();
                                 var email = document.getElementById('email').value.trim();
                     
-                                // Validate first name
-                                if (fname === '') {
-                                    showError('fnameError', 'Please enter your first name.');
-                                }
+                                if (fname === '') showError('fnameError', 'Please enter your first name.');
+                                if (lname === '') showError('lnameError', 'Please enter your last name.');
+                                if (country === '') showError('countryError', 'Please select your country.');
+                                if (houseName === '') showError('houseNameError', 'Please enter your address.');
+                                if (city === '') showError('cityError', 'Please enter your city or town.');
+                                if (state === '') showError('stateError', 'Please enter your state.');
+                                if (pincode === '') showError('pincodeError', 'Please enter your postcode or ZIP.');
+                                else if (!/^\d{6}$/.test(pincode)) showError('pincodeError', 'Please enter a valid 6-digit pincode.');
+                                if (phone === '') showError('phoneError', 'Please enter your phone number.');
+                                else if (!/^\d{10}$/.test(phone)) showError('phoneError', 'Please enter a valid 10-digit phone number.');
+                                if (email === '') showError('emailError', 'Please enter your email address.');
+                                else if (!isValidEmail(email)) showError('emailError', 'Please enter a valid email address.');
                     
-                                // Validate last name
-                                if (lname === '') {
-                                    showError('lnameError', 'Please enter your last name.');
-                                }
-                    
-                                // Validate country
-                                if (country === '') {
-                                    showError('countryError', 'Please select your country.');
-                                }
-                    
-                                // Validate address
-                                if (houseName === '') {
-                                    showError('houseNameError', 'Please enter your address.');
-                                }
-                    
-                                // Validate city
-                                if (city === '') {
-                                    showError('cityError', 'Please enter your city or town.');
-                                }
-                    
-                                // Validate state
-                                if (state === '') {
-                                    showError('stateError', 'Please enter your state.');
-                                }
-                    
-                                // Validate pincode
-                                if (pincode === '') {
-                                    showError('pincodeError', 'Please enter your postcode or ZIP.');
-                                } else if (!/^\d{6}$/.test(pincode)) {
-                                    showError('pincodeError', 'Please enter a valid 6-digit pincode.');
-                                }
-                    
-                                // Validate phone
-                                if (phone === '') {
-                                    showError('phoneError', 'Please enter your phone number.');
-                                } else if (!/^\d{10}$/.test(phone)) {
-                                    showError('phoneError', 'Please enter a valid 10-digit phone number.');
-                                }
-                    
-                                // Validate email
-                                if (email === '') {
-                                    showError('emailError', 'Please enter your email address.');
-                                } else if (!isValidEmail(email)) {
-                                    showError('emailError', 'Please enter a valid email address.');
-                                }
-                    
-                                // Add more validations as needed...
-                    
-                                // Check if there are any errors
                                 return !hasErrors();
                             }
                     
                             function showError(id, message) {
                                 var errorElement = document.getElementById(id);
-                                if (errorElement) {
-                                    errorElement.innerHTML = message;
-                                }
+                                if (errorElement) errorElement.innerHTML = message;
                             }
                     
                             function clearErrors() {
                                 var errorElements = document.querySelectorAll('.error');
-                                errorElements.forEach(function (element) {
-                                    element.innerHTML = '';
-                                });
+                                errorElements.forEach(function (element) { element.innerHTML = ''; });
                             }
                     
                             function hasErrors() {
                                 var errorElements = document.querySelectorAll('.error');
                                 for (var i = 0; i < errorElements.length; i++) {
-                                    if (errorElements[i].innerHTML !== '') {
-                                        return true;
-                                    }
+                                    if (errorElements[i].innerHTML !== '') return true;
                                 }
                                 return false;
                             }
                     
                             function isValidEmail(email) {
-                                // Add your email validation logic here
-                                return true;
+                                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
                             }
                         </script>
                     </div>

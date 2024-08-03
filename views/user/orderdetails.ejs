@@ -33,14 +33,16 @@
                     <div class="row align-items-center">
                         <div class="col-lg-6 col-md-6 mb-lg-0 mb-15">
                             <span>
-                                <i class="material-icons md-calendar_today"></i> <b><%= orders.orderDate %></b>
+                                <i class="material-icons md-calendar_today"></i> 
+                                <b><%= new Intl.DateTimeFormat('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(orders.orderDate)) %></b>
+                                
+                               
                             </span> <br>
                             <small class="text-muted">Order ID: ORD<%= orders.orderId %></small>
                         </div>
                         <div class="col-lg-6 col-md-6 ms-auto text-md-end">
-
-                                        <button class="btn btn-secondary print ms-2" id="printScreen"><i
-                                                class="icon material-icons md-print"></i></button>
+                            <button class="btn btn-secondary print ms-2" id="printScreen"><i
+                                    class="icon material-icons md-print"></i></button>
                         </div>
                         <script>
                             const printid = document.getElementById('printScreen')
@@ -85,23 +87,6 @@
                                 </div>
                             </article>
                         </div>
-                        <!-- <div class="col-md-3">
-                            <article class="icontext align-items-start">
-                                <span class="icon icon-sm rounded-circle bg-primary-light">
-                                    <i class="text-primary material-icons md-person"></i>
-                                </span>
-                                <div class="text">
-                                    <h6 class="mb-1">Order Info</h6>
-                                    <p class="mb-1">
-                                        Order Status: <% if (orders.orderstatus === 'Cancelled' || orders.orderstatus === 'Returned') { %>
-                                            <span class="text-danger"><%= orders.orderstatus %></span>
-                                        <% } else { %>
-                                            <span class="text-success"><%= orders.orderstatus %></span>
-                                        <% } %>
-                                    </p>
-                                </div>
-                            </article>
-                        </div> -->
                         <div class="col-md-3">
                             <article class="icontext align-items-start">
                                 <span class="icon icon-sm rounded-circle bg-primary-light">
@@ -110,10 +95,10 @@
                                 <div class="text">
                                     <h6 class="mb-1">Deliver To</h6>
                                     <p class="mb-1">
-                                        <%= orders.userId.address[orders.addressIndex].housename %> <br>
-                                        <%= orders.userId.address[orders.addressIndex].city %> <br>
-                                        <%= orders.userId.address[orders.addressIndex].state %> <br>
-                                        <%= orders.userId.address[orders.addressIndex].pincode %>
+                                        <%= orders.shippingAddress.housename %> <br>
+                                        <%= orders.shippingAddress.city %> <br>
+                                        <%= orders.shippingAddress.state %> <br>
+                                        <%= orders.shippingAddress.pincode %>
                                     </p>
                                 </div>
                             </article>
@@ -294,58 +279,55 @@
         }
     </script>
    
-    
+    <script>
+        function payNow(orderId, amount) {
+            var options = {
+                key: "your_razorpay_key", // Replace with your Razorpay key
+                amount: amount * 100, // Convert amount to paise
+                currency: "INR",
+                name: "Home Decor",
+                description: "Complete your payment",
+                order_id: orderId, // Ensure this is a valid Razorpay order ID
+                handler: function (response) {
+                    // Handle successful payment here
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Payment Successful',
+                        text: 'Thank you for your payment.',
+                    });
+                    setTimeout(function () {
+                        window.location.href = `/orderConfirmation?orderId=${orderId}`;
+                    }, 1000);
+                },
+                theme: {
+                    color: "#3399cc",
+                },
+            };
 
-   <script>
-    function payNow(orderId, amount) {
-        var options = {
-            key: "your_razorpay_key", // Replace with your Razorpay key
-            amount: amount * 100, // Convert amount to paise
-            currency: "INR",
-            name: "Home Decor",
-            description: "Complete your payment",
-            order_id: orderId, // Ensure this is a valid Razorpay order ID
-            handler: function (response) {
-                // Handle successful payment here
+            var rzp1 = new Razorpay(options);
+
+            rzp1.on('payment.failed', function (response) {
+                console.error(response);
                 Swal.fire({
-                    icon: 'success',
-                    title: 'Payment Successful',
-                    text: 'Thank you for your payment.',
+                    icon: 'error',
+                    title: 'Payment Failed',
+                    text: `Error: ${response.error.description}`,
                 });
-                setTimeout(function () {
-                    window.location.href = `/orderConfirmation?orderId=${orderId}`;
-                }, 1000);
-            },
-            theme: {
-                color: "#3399cc",
-            },
-        };
-
-        var rzp1 = new Razorpay(options);
-
-        rzp1.on('payment.failed', function (response) {
-            console.error(response);
-            Swal.fire({
-                icon: 'error',
-                title: 'Payment Failed',
-                text: `Error: ${response.error.description}`,
             });
-        });
 
-        try {
-            rzp1.open();
-        } catch (error) {
-            console.error("Error opening Razorpay checkout:", error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Checkout Error',
-                text: `Error: ${error.message}`,
-            });
+            try {
+                rzp1.open();
+            } catch (error) {
+                console.error("Error opening Razorpay checkout:", error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Checkout Error',
+                    text: `Error: ${error.message}`,
+                });
+            }
         }
-    }
-</script>
+    </script>
 
-    
 </body>
 
 </html>

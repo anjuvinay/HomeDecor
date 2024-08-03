@@ -60,7 +60,7 @@ userRoute.get('/addressForm', auth.isLogin, userController.addressForm)
 userRoute.post('/addressForm', auth.isLogin, userController.addAddress)
 userRoute.get('/editAddressForm', auth.isLogin, userController.editAddressForm)
 userRoute.post('/editAddressForm', auth.isLogin, userController.updateAddress)
-userRoute.get('/deleteAddress', auth.isLogin, userController.updateAddress)
+userRoute.get('/deleteAddress', auth.isLogin, userController.deleteAddress)
 
 //-----------------------------------------------cart---------------------------------------->
 

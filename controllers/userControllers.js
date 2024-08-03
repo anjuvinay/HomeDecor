@@ -3,6 +3,7 @@ const User = require('../models/userModel')
 const Product = require('../models/productModel')
 const Category = require('../models/categoryModel')
 const Brand = require('../models/brandModel')
+const Address = require('../models/addressModel')
 const Order = require('../models/orderModel')
 const { json } = require('express')
 const session = require('express-session')
@@ -469,8 +470,9 @@ userAccount : async (req, res) => {
         console.log("Email is: "+email)
               
         const user = await User.findOne({ email: email });
+        const addresses = await Address.find({ userId: user._id });
         const orders = await Order.find({ userId: user._id }).populate('products.productId').sort({ orderDate: -1 });
-        res.render('userAccount', { user: user, orders })
+        res.render('userAccount', { user: user, orders,addresses })
        
         
 
@@ -494,75 +496,62 @@ addressForm : async (req, res) => {
 },
 
 
-addAddress : async (req, res) => {
-    try {
-        const checkout = req.body.checkout
-        // console.log(checkout)
-        const email = req.session.email
-        const userData = await User.findOne({ email: email })
-        const { fname, lname, country, houseName, city, state, pincode, phone } = req.body
-        const result = await User.updateOne({ email: email },
-            {
-                $push:
-                {
-                    address:
-                    {
-                        $each:
-                            [
-                                {
-                                    fname: fname,
-                                    lname: lname,
-                                    country: country,
-                                    housename: houseName,
-                                    city: city,
-                                    state: state,
-                                    pincode: pincode,
-                                    phone: phone,
-                                    email: email
-                                }
-                            ]
-                    }
-                }
-            })
+// addAddress : async (req, res) => {
+//     try {
+//         const checkout = req.body.checkout
+//         const email = req.session.email
+//         const userData = await User.findOne({ email: email })
+//         const { fname, lname, country, houseName, city, state, pincode, phone } = req.body
+//         const result = await User.updateOne({ email: email },
+//             {
+//                 $push:
+//                 {
+//                     address:
+//                     {
+//                         $each:
+//                             [
+//                                 {
+//                                     fname: fname,
+//                                     lname: lname,
+//                                     country: country,
+//                                     housename: houseName,
+//                                     city: city,
+//                                     state: state,
+//                                     pincode: pincode,
+//                                     phone: phone,
+//                                     email: email
+//                                 }
+//                             ]
+//                     }
+//                 }
+//             })
             
-        if (result) {
-            if (checkout) {
-                res.redirect('/checkout')
-            } else {
-                res.redirect('/userAccount')
-            }
-        }
-    } catch (error) {
-        console.log(error.message)
-        res.redirect('/500')
-    }
-},
+//         if (result) {
+//             if (checkout) {
+//                 res.redirect('/checkout')
+//             } else {
+//                 res.redirect('/userAccount')
+//             }
+//         }
+//     } catch (error) {
+//         console.log(error.message)
+//         res.redirect('/500')
+//     }
+// },
 
 
-editAddressForm : async (req, res) => {
+
+
+
+addAddress: async (req, res) => {
     try {
-        const checkout = req.query.checkoutcode
+        const checkout = req.body.checkout;
         const email = req.session.email;
-        const index = req.query.index
-        const userData = await User.findOne({ email: email })
-        const address = userData.address[index]
-        res.render('editAddressForm', { address, index, checkout, user: userData })
-    } catch (error) {
-        console.log(error.message)
-        res.redirect('/500')
-    }
-},
+        const userData = await User.findOne({ email: email });
+        const { fname, lname, country, houseName, city, state, pincode, phone } = req.body;
 
-
-updateAddress : async (req, res) => {
-    try {
-        const email = req.session.email
-        const index = req.query.index
-        const checkout = req.query.checkout
-        
-        const userData = await User.findOne({ email: email })
-        const { fname, lname, country, houseName, city, state, pincode, phone } = req.body
-        const newAddress = {
+        const newAddress = new Address({
+            userId: userData._id,
             fname: fname,
             lname: lname,
             country: country,
@@ -572,32 +561,78 @@ updateAddress : async (req, res) => {
             pincode: pincode,
             phone: phone,
             email: email
-        }
-        userData.address[index] = newAddress
-        await userData.save();
+        });
+
+        await newAddress.save();
+
         if (checkout) {
-            res.redirect('/checkout')
+            res.redirect('/checkout');
         } else {
-            res.redirect('/userAccount')
+            res.redirect('/userAccount');
         }
-
-
     } catch (error) {
-        console.log(error.message)
-        res.redirect('/500')
+        console.log(error.message);
+        res.redirect('/500');
     }
 },
 
 
+editAddressForm: async (req, res) => {
+    try {
+        const email = req.session.email;
+        const checkout = req.query.checkoutcode;
+        const addressId = req.query.addressId;
+        const userData = await User.findOne({ email: email })
+        const address = await Address.findById(addressId);
+        res.render('editAddressForm', { address, checkout ,user: userData});
+    } catch (error) {
+        console.log(error.message);
+        res.redirect('/500');
+    }
+},
+
+
+
+
+updateAddress: async (req, res) => {
+    try {
+        const addressId = req.query.addressId;
+        const checkout = req.query.checkout;
+
+        const { fname, lname, country, houseName, city, state, pincode, phone, email } = req.body;
+        const updatedAddress = {
+            fname: fname,
+            lname: lname,
+            country: country,
+            housename: houseName,
+            city: city,
+            state: state,
+            pincode: pincode,
+            phone: phone,
+            email: email
+        };
+
+        await Address.findByIdAndUpdate(addressId, updatedAddress);
+
+        if (checkout) {
+            res.redirect('/checkout');
+        } else {
+            res.redirect('/userAccount');
+        }
+    } catch (error) {
+        console.log(error.message);
+        res.redirect('/500');
+    }
+},
+
+
+
+
 deleteAddress: async (req, res) => {
     try {
-        const userId = req.query.userId;
         const addressId = req.query.addressId;
 
-        await User.updateOne(
-            { _id: userId },
-            { $pull: { address: { _id: addressId } } }
-        );
+        await Address.findByIdAndDelete(addressId);
 
         res.redirect('/userAccount');
     } catch (error) {
@@ -605,6 +640,9 @@ deleteAddress: async (req, res) => {
         res.redirect('/500');
     }
 },
+
+
+
 
 
 updateUserDetails : async (req, res) => {

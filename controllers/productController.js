@@ -4,6 +4,7 @@ const Brand = require('../models/brandModel')
 const Product = require('../models/productModel')
 const Coupon = require('../models/couponModel')
 const Wishlist = require('../models/wishlistModel')
+const Address = require('../models/addressModel')
 const bcrypt=require('bcrypt')
 const session = require('express-session')
 const path = require('path')
@@ -457,36 +458,6 @@ module.exports = {
     },
 
 
-    // addToCart: async (req, res) => {
-    //     try {
-    //         const productId = req.query.productId;
-    //         const email = req.session.email;
-    //         const quantity = parseInt(req.body.quantity, 10) || 1;
-
-    //         const userData = await User.findOne({ email });
-    //         const productData = await Product.findById(productId);
-
-    //         if (!productData) {
-    //             res.status(404).send('Product not found');
-    //             return;
-    //         }
-
-    //         let cartItem = userData.cart.find(item => item.productId.toString() === productId);
-
-    //         if (cartItem) {
-    //             cartItem.quantity += quantity;
-    //         } else {
-    //             userData.cart.push({ productId, quantity });
-    //         }
-
-    //         await userData.save();
-    //         res.redirect('/cart');
-    //     } catch (error) {
-    //         console.log(error.message);
-    //         res.redirect('/500');
-    //     }
-    // },
-
 
 
     addToCart: async (req, res) => {
@@ -567,104 +538,7 @@ module.exports = {
         }
     },
 
-
-
-
-    // shop: async (req, res) => {
-    //     try {
-    //         const email = req.session.email;
-    //         const userData = await User.findOne({ email: email });
-    //         const categories = await Category.find({ is_active: true });
-    //         const brands = await Brand.find({ is_active: true });
-    //         const message = req.query.message ?? null;
-    //         const sort = req.query.sort ?? '';
-    //         const searchQuery = req.query.search ?? '';
-    //         const categoryId = req.query.categoryId ?? '';
-    //         const currentPage = parseInt(req.query.page) || 1;
-    //         const pageSize = 9;
     
-    //         // Default query and sort options
-    //         let query = { is_active: true };
-    //         let sortOptions = {};
-    
-    //         // Apply search filter
-    //         if (searchQuery) {
-    //             query.$or = [
-    //                 { title: new RegExp(searchQuery, 'i') },
-    //                 { description: new RegExp(searchQuery, 'i') },
-    //             ];
-    //         }
-    
-    //         // Apply category filter
-    //         if (categoryId) {
-    //             query.categoryId = categoryId;
-    //         }
-    
-    //         // Determine sort options based on query parameter
-    //         switch (sort) {
-    //             case 'ascending':
-    //                 sortOptions = { salePrice: 1 };
-    //                 break;
-    //             case 'descending':
-    //                 sortOptions = { salePrice: -1 };
-    //                 break;
-    //             case 'newarrival':
-    //                 sortOptions = { date: -1 };
-    //                 break;
-    //             case 'atoz':
-    //                 sortOptions = { title: 1 };
-    //                 break;
-    //             case 'ztoa':
-    //                 sortOptions = { title: -1 };
-    //                 break;
-    //             case 'rating':
-    //                 sortOptions = { rating: -1 };
-    //                 break;
-    //             case 'popular':
-    //                 sortOptions = { popularity: -1 };
-    //                 break;
-    //             case 'featured':
-    //                 sortOptions = { featured: -1 };
-    //                 break;
-    //             default:
-    //                 sortOptions = { date: 1 };
-    //         }
-    
-    //         // Calculate skip and limit values for pagination
-    //         const skip = (currentPage - 1) * pageSize;
-    
-    //         // Get total number of products matching the query
-    //         const totalProducts = await Product.countDocuments(query);
-    
-    //         // Fetch paginated and sorted products from the database
-    //         const productData = await Product.find(query)
-    //             .sort(sortOptions)
-    //             .skip(skip)
-    //             .limit(pageSize);
-    
-    //         // Calculate total pages for pagination
-    //         const totalPages = Math.ceil(totalProducts / pageSize);
-    
-    //         // Render the shop page with the fetched data
-    //         res.render('shop', {
-    //             products: productData,
-    //             user: userData,
-    //             categories,
-    //             brands,
-    //             search: searchQuery,
-    //             message,
-    //             currentPage,
-    //             totalPages,
-    //             sort, // Pass the sort parameter to the view
-    //             categoryId // Pass the categoryId to the view
-    //         });
-    //     } catch (error) {
-    //         console.log(error.message);
-    //         res.redirect('/500');
-    //     }
-    // },
-    
-
 
 
 
@@ -758,11 +632,6 @@ module.exports = {
     
     
     
-    
-    
-
-
-    
     showCheckOut: async (req, res) => {
         try {
             const email = req.session.email;
@@ -770,8 +639,11 @@ module.exports = {
             const userData = await User.findOne({ email: email }).populate('cart.productId');
             const coupon = await Coupon.find({ is_active: true, "redeemedUsers.userId": { $ne: userData._id } });
             const categories = await Category.find({ is_active: true });
+    
+            // Fetch addresses from the Address model
+            const addresses = await Address.find({ userId: userData._id });
+    
             let flag = 0;
-            
             userData.cart.forEach(item => {
                 if (item.productId.quantity < 1) {
                     flag = 1;
@@ -802,44 +674,126 @@ module.exports = {
                 });
     
                 totalDiscountPercentage = (discountTotal / originalTotal) * 100;
-
-                 // Calculate delivery charge
-            const totalAmountAfterDiscount = originalTotal - discountTotal;
-            if (totalAmountAfterDiscount < 1000) {
-                deliveryCharge = 100;
-            } else if (totalAmountAfterDiscount >= 1000 && totalAmountAfterDiscount <= 5000) {
-                deliveryCharge = 50;
-            }
-
-                  // Disable Cash On Delivery if total amount exceeds 1000
-            if (originalTotal - discountTotal > 1000) {
-                isCodDisabled = true;
-            }
-
-             // Calculate final amount including delivery charge
-             const finalAmount = totalAmountAfterDiscount + deliveryCharge;
+    
+                // Calculate delivery charge
+                const totalAmountAfterDiscount = originalTotal - discountTotal;
+                if (totalAmountAfterDiscount < 1000) {
+                    deliveryCharge = 100;
+                } else if (totalAmountAfterDiscount >= 1000 && totalAmountAfterDiscount <= 5000) {
+                    deliveryCharge = 50;
+                }
+    
+                // Disable Cash On Delivery if total amount exceeds 1000
+                if (originalTotal - discountTotal > 1000) {
+                    isCodDisabled = true;
+                }
+    
+                // Calculate final amount including delivery charge
+                const finalAmount = totalAmountAfterDiscount + deliveryCharge;
     
                 return res.render('checkout', {
                     user: userData,
                     categories,
                     brands,
                     coupon,
+                    addresses, // Pass the addresses to the template
                     originalTotal: originalTotal.toFixed(2),
                     discountTotal: discountTotal.toFixed(2),
                     totalDiscountPercentage: totalDiscountPercentage.toFixed(2),
                     isCodDisabled,
-                    deliveryCharge: deliveryCharge.toFixed(0) ,
-                    finalAmount: finalAmount.toFixed(2) 
+                    deliveryCharge: deliveryCharge.toFixed(0),
+                    finalAmount: finalAmount.toFixed(2)
                 });
             } else {
                 return res.redirect('/cart');
             }
-    
         } catch (error) {
             console.log(error.message);
             return res.redirect('/500');
         }
     },
+    
+    
+
+
+    
+    // showCheckOut: async (req, res) => {
+    //     try {
+    //         const email = req.session.email;
+    //         const brands = await Brand.find({ is_active: true });
+    //         const userData = await User.findOne({ email: email }).populate('cart.productId');
+    //         const coupon = await Coupon.find({ is_active: true, "redeemedUsers.userId": { $ne: userData._id } });
+    //         const categories = await Category.find({ is_active: true });
+    //         let flag = 0;
+            
+    //         userData.cart.forEach(item => {
+    //             if (item.productId.quantity < 1) {
+    //                 flag = 1;
+    //             } else if (item.productId.quantity < item.quantity) {
+    //                 flag = 2;
+    //             }
+    //         });
+    
+    //         if (flag == 1) {
+    //             return res.redirect('/cart?message=stockout');
+    //         } else if (flag == 2) {
+    //             return res.redirect('/cart?message=stocklow');
+    //         }
+    
+    //         if (userData.cart.length > 0) {
+    //             let originalTotal = 0;
+    //             let discountTotal = 0;
+    //             let totalDiscountPercentage = 0;
+    //             let isCodDisabled = false;
+    //             let deliveryCharge = 0;
+    
+    //             userData.cart.forEach(item => {
+    //                 const originalPrice = item.productId.regularPrice * item.quantity;
+    //                 const salePrice = item.productId.salePrice * item.quantity;
+    //                 const discountAmount = originalPrice - salePrice;
+    //                 originalTotal += originalPrice;
+    //                 discountTotal += discountAmount;
+    //             });
+    
+    //             totalDiscountPercentage = (discountTotal / originalTotal) * 100;
+
+    //              // Calculate delivery charge
+    //         const totalAmountAfterDiscount = originalTotal - discountTotal;
+    //         if (totalAmountAfterDiscount < 1000) {
+    //             deliveryCharge = 100;
+    //         } else if (totalAmountAfterDiscount >= 1000 && totalAmountAfterDiscount <= 5000) {
+    //             deliveryCharge = 50;
+    //         }
+
+    //               // Disable Cash On Delivery if total amount exceeds 1000
+    //         if (originalTotal - discountTotal > 1000) {
+    //             isCodDisabled = true;
+    //         }
+
+    //          // Calculate final amount including delivery charge
+    //          const finalAmount = totalAmountAfterDiscount + deliveryCharge;
+    
+    //             return res.render('checkout', {
+    //                 user: userData,
+    //                 categories,
+    //                 brands,
+    //                 coupon,
+    //                 originalTotal: originalTotal.toFixed(2),
+    //                 discountTotal: discountTotal.toFixed(2),
+    //                 totalDiscountPercentage: totalDiscountPercentage.toFixed(2),
+    //                 isCodDisabled,
+    //                 deliveryCharge: deliveryCharge.toFixed(0) ,
+    //                 finalAmount: finalAmount.toFixed(2) 
+    //             });
+    //         } else {
+    //             return res.redirect('/cart');
+    //         }
+    
+    //     } catch (error) {
+    //         console.log(error.message);
+    //         return res.redirect('/500');
+    //     }
+    // },
 
 
 

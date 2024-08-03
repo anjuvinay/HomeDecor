@@ -193,21 +193,21 @@
                                                             <%=user.email%>
                                                         </td>
                                                     </tr>
-                                                    <% if (user && user.address && user.address[0]) { %>
+                                                    <% if (addresses && addresses.length > 0) { %>
                                                         <tr>
                                                             <td>Address:</td>
                                                             <td>
-                                                                <%=user.address[0].city%>,<%=user.address[0].state%>,
-                                                                        <%=user.address[0].country%>
+                                                                <%=addresses[0].city%>, <%=addresses[0].state%>,
+                                                                <%=addresses[0].country%>
                                                             </td>
                                                         </tr>
                                                         <tr>
                                                             <td>Pincode:</td>
                                                             <td>
-                                                                <%=user.address[0].pincode%>
+                                                                <%=addresses[0].pincode%>
                                                             </td>
                                                         </tr>
-                                                        <%}%>
+                                                    <% } %>
                                                 </table>
                                 
 
@@ -292,40 +292,37 @@
                                    
                                         <!-- ........ -->
                                          <br>
-                                        <div class="tab-pane fade" id="address" role="tabpanel"
+                                         <div class="tab-pane fade" id="address" role="tabpanel"
                                         aria-labelledby="address-tab">
                                         <a href="/addressForm"><button class="btn btn-md rounded font-sm hover-up">+ Add
                                                 address</button></a><br><br>
                                         <div class="row">
-                                            <%for(i=0;i<user.address.length;i++){%>&nbsp;&nbsp;&nbsp;&nbsp;
+                                            <%for(i=0;i<addresses.length;i++){%>&nbsp;&nbsp;&nbsp;&nbsp;
                                                 <div class="col-lg-6 mb-4">
                                                     <div class="card mb-3 mb-lg-0">
                                                         <div class="card-header">
                                                             <h5 class="mb-0">Billing Address <%= i + 1 %></h5>
                                                         </div>
                                                         <div class="card-body">
-
                                                             <address class="text-center-custom">
-                                                                <%=user.address[i].fname%>
-                                                                    <%=user.address[i].lname%><br>
-                                                                        <%=user.address[i].housename%><br>
-                                                                            <%=user.address[i].city%> <br>
-                                                                                <%=user.address[i].state%> <br>
-                                                                                    <%=user.address[i].pincode%> <br>
-                                                                                        <%=user.address[i].phone%>
+                                                                <%=addresses[i].fname%>
+                                                                    <%=addresses[i].lname%><br>
+                                                                        <%=addresses[i].housename%><br>
+                                                                            <%=addresses[i].city%> <br>
+                                                                                <%=addresses[i].state%> <br>
+                                                                                    <%=addresses[i].pincode%> <br>
+                                                                                        <%=addresses[i].phone%>
                                                             </address>
-                                                           
-                                                            <!-- <p>New York</p> -->
                                                             <button style="background-color: rgb(174, 201, 198); border: 1px;margin-left: 2rem;">
-                                                                <a href="/editAddressForm?index=<%=i%>"
-                                                                class="btn-small">Edit</a></button>&nbsp;&nbsp;&nbsp;
-                                                                <button style="background-color: rgb(174, 201, 198); border: 1px;">
-                                                            <a href="/deleteAddress?userId=<%= user._id %>&index=<%= i %>" class="btn-small">Delete</a></button>
+                                                                <a href="/editAddressForm?addressId=<%=addresses[i]._id%>"
+                                                                    class="btn-small">Edit</a></button>&nbsp;&nbsp;&nbsp;
+                                                            <button style="background-color: rgb(174, 201, 198); border: 1px;">
+                                                                <a href="/deleteAddress?addressId=<%=addresses[i]._id%>"
+                                                                    class="btn-small">Delete</a></button>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <%}%>
-                                                   
+                                            <%}%>
                                         </div>
                                     </div>
                                     <br>

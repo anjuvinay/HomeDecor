@@ -4,6 +4,7 @@ const Order = require('../models/orderModel')
 const Coupon=require('../models/couponModel')
 const Brand = require('../models/brandModel')
 const Category = require('../models/categoryModel')
+const Address = require('../models/addressModel')
 const session = require('express-session')
 require('dotenv').config();
 
@@ -20,12 +21,148 @@ module.exports = {
     
 
 
+    // placeOrder: async (req, res) => {
+    //     try {
+    //         const couponCode = req.body.couponSelected;
+    //         const email = req.session.email;
+    //         const userData = await User.findOne({ email: email }).populate('cart.productId');
+    //         const addressIndex = req.body.selectAddress;
+    //         const paymentMethod = req.body.payment_option;
+    //         let totalAmount = parseFloat(req.body.totalAmount);
+    
+    //         let originalTotal = 0;
+    //         let discountTotal = 0;
+    
+    //         // Check product stock
+    //         for (let i = 0; i < userData.cart.length; i++) {
+    //             if (userData.cart[i].productId.quantity < 1) {
+    //                 return res.redirect('/cart?message=stockout');
+    //             } else if (userData.cart[i].productId.quantity < userData.cart[i].quantity) {
+    //                 return res.redirect('/cart?message=stocklow');
+    //             }
+    //         }
+    
+    //         // Calculate totals
+    //         userData.cart.forEach(item => {
+    //             const originalPrice = item.productId.regularPrice * item.quantity;
+    //             const salePrice = item.productId.salePrice * item.quantity;
+    //             const discountAmount = originalPrice - salePrice;
+    //             originalTotal += originalPrice;
+    //             discountTotal += discountAmount;
+    //         });
+    
+    //         // Apply coupon if available
+    //         let couponData = await Coupon.findOne({ couponCode: couponCode });
+    //         let coupon = null;
+    //         if (couponData != null) {
+    //             totalAmount -= couponData.discount;
+    //             totalAmount = parseFloat(totalAmount.toFixed(2)); // Ensure two decimal places
+    //             const obj = {
+    //                 userId: userData._id
+    //             };
+    //             await couponData.redeemedUsers.push(obj);
+    //             await couponData.save();
+    //             coupon = couponData.discount;
+    //         }
+    
+    //         const totalDiscountPercentage = (discountTotal / originalTotal) * 100;
+    
+    //         // Calculate the delivery charge based on the total amount
+    //         let deliveryCharge = 0;
+    //         if (totalAmount < 1000) {
+    //             deliveryCharge = 100;
+    //         } else if (totalAmount >= 1000 && totalAmount <= 5000) {
+    //             deliveryCharge = 50;
+    //         }
+    
+    //         totalAmount += deliveryCharge;
+    //         totalAmount = parseFloat(totalAmount.toFixed(2)); // Ensure two decimal places
+    
+    //         if (addressIndex >= 0 && userData.cart.length > 0) {
+    //             const userCart = userData.cart;
+    
+    //             for (let i = 0; i < userCart.length; i++) {
+    //                 userCart[i].productId.quantity -= userCart[i].quantity;
+    
+    //                 if (userCart[i].productId.quantity < 0) {
+    //                     userCart[i].productId.quantity = 0;
+    //                 }
+    
+    //                 await Product.findByIdAndUpdate(
+    //                     { _id: userCart[i].productId._id },
+    //                     { $set: { quantity: userCart[i].productId.quantity },
+    //                     $inc: { popularity: userCart[i].quantity }
+    //                  }
+    //                 );
+    //             }
+    
+    //             let arr = [];
+    //             userCart.forEach((item) => {
+    //                 arr.push({
+    //                     productId: item.productId._id,
+    //                     quantity: item.quantity,
+    //                     regularPrice: item.productId.regularPrice,
+    //                     salePrice: item.productId.salePrice
+    //                 });
+    //             });
+    
+    //             const randomid = randomId();
+    //             async function randomId() {
+    //                 const min = 100000;
+    //                 const max = 999999;
+    //                 const randomSixDigitNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+    //                 const orderData = await Order.findOne({ orderId: randomSixDigitNumber });
+    //                 if (orderData) {
+    //                     return await randomId();
+    //                 } else {
+    //                     return randomSixDigitNumber;
+    //                 }
+    //             }
+    //             const orderId = await randomid;
+    
+    //             const order = new Order({
+    //                 userId: userData._id,
+    //                 products: arr,
+    //                 addressIndex: addressIndex,
+    //                 totalAmount: totalAmount,
+    //                 originalTotal: originalTotal,
+    //                 discountTotal: discountTotal,
+    //                 totalDiscountPercentage: totalDiscountPercentage,
+    //                 paymentMethod: paymentMethod,
+    //                 orderId: orderId,
+    //                 coupon: coupon,
+    //                 adminTotal: totalAmount,
+    //                 shipping: deliveryCharge,
+    //             });
+    //             const orderData = await order.save();
+    
+    //             if (orderData) {
+    //                 userData.cart = [];
+    //                 await userData.save();
+    //                 setTimeout(() => {
+    //                     res.redirect('/userAccount');
+    //                 }, 2000);
+    //             } else {
+    //                 res.redirect('/checkOut');
+    //             }
+    //         } else {
+    //             res.redirect('/checkOut');
+    //         }
+    //     } catch (error) {
+    //         console.log(error.message);
+    //         res.redirect('/500');
+    //     }
+    // },
+
+
+
+
     placeOrder: async (req, res) => {
         try {
             const couponCode = req.body.couponSelected;
             const email = req.session.email;
             const userData = await User.findOne({ email: email }).populate('cart.productId');
-            const addressIndex = req.body.selectAddress;
+            const addressId = req.body.selectAddress;
             const paymentMethod = req.body.payment_option;
             let totalAmount = parseFloat(req.body.totalAmount);
     
@@ -77,7 +214,9 @@ module.exports = {
             totalAmount += deliveryCharge;
             totalAmount = parseFloat(totalAmount.toFixed(2)); // Ensure two decimal places
     
-            if (addressIndex >= 0 && userData.cart.length > 0) {
+            const address = await Address.findById(addressId);
+    
+            if (address && userData.cart.length > 0) {
                 const userCart = userData.cart;
     
                 for (let i = 0; i < userCart.length; i++) {
@@ -89,9 +228,10 @@ module.exports = {
     
                     await Product.findByIdAndUpdate(
                         { _id: userCart[i].productId._id },
-                        { $set: { quantity: userCart[i].productId.quantity },
-                        $inc: { popularity: userCart[i].quantity }
-                     }
+                        { 
+                            $set: { quantity: userCart[i].productId.quantity },
+                            $inc: { popularity: userCart[i].quantity }
+                        }
                     );
                 }
     
@@ -122,7 +262,17 @@ module.exports = {
                 const order = new Order({
                     userId: userData._id,
                     products: arr,
-                    addressIndex: addressIndex,
+                    shippingAddress: {
+                        fname: address.fname,
+                        lname: address.lname,
+                        country: address.country,
+                        housename: address.housename,
+                        city: address.city,
+                        state: address.state,
+                        pincode: address.pincode,
+                        phone: address.phone,
+                        email: address.email
+                    },
                     totalAmount: totalAmount,
                     originalTotal: originalTotal,
                     discountTotal: discountTotal,
@@ -152,6 +302,7 @@ module.exports = {
             res.redirect('/500');
         }
     },
+    
     
     
 
@@ -379,36 +530,45 @@ returnOrder : async (req, res) => {
 
 
 
-checkWallet : async(req,res)=>{
+checkWallet : async (req, res) => {
     try {
-       
-        const couponCode=req.session.couponCode
-        const email = req.session.email
-        const userData = await User.findOne({ email: email }).populate('cart.productId')
-        const addressIndex = req.query.addressIndex       
-        let totalAmount =req.query.totalAmount
+        const couponCode = req.session.couponCode;
+        const email = req.session.email;
+        const userData = await User.findOne({ email: email }).populate('cart.productId');
+        const addressId = req.query.addressId;
+        let totalAmount = parseFloat(req.query.totalAmount);
 
-       const couponData=await Coupon.findOne({couponCode:couponCode})
-
-        if(couponData!=null){
-            const finalPrice=totalAmount-couponData.discount
-            totalAmount=finalPrice
+        if (!userData) {
+            return res.redirect('/500');
         }
-        console.log(userData.wallet)
-        if(totalAmount>userData.wallet){
-            
+
+        // Fetch the address details
+        const address = await Address.findById(addressId);
+
+        if (!address) {
+            return res.redirect('/500');
+        }
+
+        const couponData = await Coupon.findOne({ couponCode: couponCode });
+
+        if (couponData) {
+            const finalPrice = totalAmount - couponData.discount;
+            totalAmount = finalPrice;
+        }
+
+        console.log(userData.wallet);
+        if (totalAmount > userData.wallet) {
             res.status(200).json({
-                message:'Insufficient Balance in Wallet'
-            })
-        }else{
-            console.log("i have entered inside")
-            
-            res.status(200).json({status:"Success",message:''})
+                message: 'Insufficient Balance in Wallet'
+            });
+        } else {
+            console.log("I have entered inside");
+            res.status(200).json({ status: "Success", message: '' });
         }
 
     } catch (error) {
-        console.log(error.message)
-        res.redirect('/500')
+        console.log(error.message);
+        res.redirect('/500');
     }
 },
 
@@ -416,16 +576,26 @@ checkWallet : async(req,res)=>{
 
 
 
-
-walletPayment: async (req, res) => {
+walletPayment : async (req, res) => {
     try {
         console.log('wallet');
         const couponCode = req.session.couponCode;
         const email = req.session.email;
         const userData = await User.findOne({ email: email }).populate('cart.productId');
-        const addressIndex = req.query.addressIndex;
+        const addressId = req.query.addressId;
         const paymentMethod = 'Wallet';
         let totalAmount = parseFloat(req.query.totalAmount);
+
+        if (!userData) {
+            return res.redirect('/500');
+        }
+
+        // Fetch the address details
+        const address = await Address.findById(addressId);
+
+        if (!address) {
+            return res.redirect('/500');
+        }
 
         let originalTotal = 0;
         let discountTotal = 0;
@@ -443,7 +613,7 @@ walletPayment: async (req, res) => {
         // Apply coupon if available
         const couponData = await Coupon.findOne({ couponCode: couponCode });
         let coupon = null;
-        if (couponData != null) {
+        if (couponData) {
             totalAmount -= couponData.discount;
             totalAmount = parseFloat(totalAmount.toFixed(2)); // Ensure two decimal places
             const obj = {
@@ -469,7 +639,7 @@ walletPayment: async (req, res) => {
         userData.wallet -= totalAmount;
         await userData.save();
 
-        if (addressIndex >= 0 && userData.cart.length > 0) {
+        if (address && userData.cart.length > 0) {
             const userCart = userData.cart;
 
             for (let i = 0; i < userCart.length; i++) {
@@ -513,7 +683,17 @@ walletPayment: async (req, res) => {
             const order = new Order({
                 userId: userData._id,
                 products: arr,
-                addressIndex: addressIndex,
+                shippingAddress: {
+                    fname: address.fname,
+                    lname: address.lname,
+                    country: address.country,
+                    housename: address.housename,
+                    city: address.city,
+                    state: address.state,
+                    pincode: address.pincode,
+                    phone: address.phone,
+                    email: address.email
+                },
                 totalAmount: totalAmount,
                 originalTotal: originalTotal,
                 discountTotal: discountTotal,
@@ -523,7 +703,7 @@ walletPayment: async (req, res) => {
                 paymentStatus: 'Success',
                 coupon: coupon,
                 adminTotal: totalAmount,
-                shipping: deliveryCharge // Ensure this is saved
+                shipping: deliveryCharge
             });
             const orderData = await order.save();
 
@@ -544,8 +724,6 @@ walletPayment: async (req, res) => {
         res.redirect('/500');
     }
 },
-
-
 
 
 
@@ -611,9 +789,12 @@ getWallet: async (req, res) => {
 onlinePayment: async (req, res) => {
     try {
         let totalAmount = parseFloat(req.query.totalAmount);
+        console.log("Total amount: "+totalAmount)
         const couponCode = req.session.couponCode;
+        console.log("coupon: "+couponCode)
         const couponData = await Coupon.findOne({ couponCode: couponCode });
         const userData = await User.findOne({ email: req.session.email }).populate('cart.productId');
+        console.log("userData: "+userData)
         let flag = 0;
 
         const userCart = userData.cart;
@@ -681,13 +862,30 @@ onlinePayment: async (req, res) => {
 
 paymentSuccess: async (req, res) => {
     try {
-        
         const email = req.session.email;
         const userData = await User.findOne({ email: email }).populate('cart.productId');
-        const addressIndex = req.query.addressIndex;
+        
+        if (!userData) {
+            console.error("User not found");
+            return res.redirect('/500');
+        }
+
+        const addressId = req.query.addressId; // Ensure addressId is received
         let totalAmount = parseFloat(req.query.totalAmount);
         const couponCode = req.query.couponCode;
         const paymentMethod = 'Razorpay';
+
+        console.log("Received addressId:", addressId);
+
+        // Fetch the address using the addressId
+        const address = await Address.findById(addressId);
+
+        console.log("Found address:", address);  // Add this line for debugging
+
+        if (!address) {
+            console.error("Address not found");
+            return res.redirect('/500');
+        }
 
         let originalTotal = 0;
         let discountTotal = 0;
@@ -713,18 +911,16 @@ paymentSuccess: async (req, res) => {
             coupon = couponData.discount;
         }
 
-        // Calculate the delivery charge based on the total amount
         let deliveryCharge = 0;
         if (totalAmount < 1000) {
             deliveryCharge = 100;
         } else if (totalAmount >= 1000 && totalAmount <= 5000) {
             deliveryCharge = 50;
         }
-
         totalAmount += deliveryCharge;
         totalAmount = parseFloat(totalAmount.toFixed(2));
 
-        if (addressIndex >= 0 && userData.cart.length > 0) {
+        if (userData.cart.length > 0) {
             const userCart = userData.cart;
 
             for (let i = 0; i < userCart.length; i++) {
@@ -768,7 +964,17 @@ paymentSuccess: async (req, res) => {
             const order = new Order({
                 userId: userData._id,
                 products: arr,
-                addressIndex: addressIndex,
+                shippingAddress: {
+                    fname: address.fname,
+                    lname: address.lname,
+                    country: address.country,
+                    housename: address.housename,
+                    city: address.city,
+                    state: address.state,
+                    pincode: address.pincode,
+                    phone: address.phone,
+                    email: address.email
+                },
                 totalAmount: totalAmount,
                 originalTotal: originalTotal,
                 discountTotal: discountTotal,
@@ -787,12 +993,21 @@ paymentSuccess: async (req, res) => {
                 await userData.save();
                 res.redirect('/userAccount');
             }
+        } else {
+            console.error('Cart is empty');
+            res.redirect('/500');
         }
     } catch (error) {
         console.log(error.message);
         res.redirect('/500');
     }
 },
+
+
+
+
+
+
 
 
 handlePaymentFailure: async (req, res) => {
@@ -802,12 +1017,11 @@ handlePaymentFailure: async (req, res) => {
         const email = req.session.email;
         const userData = await User.findOne({ email: email }).populate('cart.productId');
       
-        const addressIndex = parseInt(req.body.addressIndex, 10);
+        const addressId = req.body.addressId;
         let totalAmount = parseFloat(req.body.totalAmount);
         const couponCode = req.body.couponCode;
 
         const paymentMethod = 'Razorpay';
-
 
         let originalTotal = 0;
         let discountTotal = 0;
@@ -847,8 +1061,9 @@ handlePaymentFailure: async (req, res) => {
 
         console.log("length: "+userData.cart.length)
 
-         if (addressIndex >= 0 && userData.cart.length > 0) {
-           
+        const address = userData.address.find(addr => addr._id.toString() === addressId);
+
+         if (address && userData.cart.length > 0) {
             const userCart = userData.cart;
             console.log("usercart: "+userCart)
             
@@ -894,7 +1109,17 @@ handlePaymentFailure: async (req, res) => {
             const order = new Order({
                 userId: userData._id,
                 products: arr,
-                addressIndex: addressIndex,
+                shippingAddress: {
+                    fname: address.fname,
+                    lname: address.lname,
+                    country: address.country,
+                    housename: address.housename,
+                    city: address.city,
+                    state: address.state,
+                    pincode: address.pincode,
+                    phone: address.phone,
+                    email: address.email
+                },
                 totalAmount: totalAmount,
                 originalTotal: originalTotal,
                 discountTotal: discountTotal,
@@ -921,6 +1146,7 @@ handlePaymentFailure: async (req, res) => {
         res.redirect('/500');
     }
 },
+
 
 
 
