@@ -18,144 +18,6 @@ var instance = new Razorpay({
 
 module.exports = {
 
-    
-
-
-    // placeOrder: async (req, res) => {
-    //     try {
-    //         const couponCode = req.body.couponSelected;
-    //         const email = req.session.email;
-    //         const userData = await User.findOne({ email: email }).populate('cart.productId');
-    //         const addressIndex = req.body.selectAddress;
-    //         const paymentMethod = req.body.payment_option;
-    //         let totalAmount = parseFloat(req.body.totalAmount);
-    
-    //         let originalTotal = 0;
-    //         let discountTotal = 0;
-    
-    //         // Check product stock
-    //         for (let i = 0; i < userData.cart.length; i++) {
-    //             if (userData.cart[i].productId.quantity < 1) {
-    //                 return res.redirect('/cart?message=stockout');
-    //             } else if (userData.cart[i].productId.quantity < userData.cart[i].quantity) {
-    //                 return res.redirect('/cart?message=stocklow');
-    //             }
-    //         }
-    
-    //         // Calculate totals
-    //         userData.cart.forEach(item => {
-    //             const originalPrice = item.productId.regularPrice * item.quantity;
-    //             const salePrice = item.productId.salePrice * item.quantity;
-    //             const discountAmount = originalPrice - salePrice;
-    //             originalTotal += originalPrice;
-    //             discountTotal += discountAmount;
-    //         });
-    
-    //         // Apply coupon if available
-    //         let couponData = await Coupon.findOne({ couponCode: couponCode });
-    //         let coupon = null;
-    //         if (couponData != null) {
-    //             totalAmount -= couponData.discount;
-    //             totalAmount = parseFloat(totalAmount.toFixed(2)); // Ensure two decimal places
-    //             const obj = {
-    //                 userId: userData._id
-    //             };
-    //             await couponData.redeemedUsers.push(obj);
-    //             await couponData.save();
-    //             coupon = couponData.discount;
-    //         }
-    
-    //         const totalDiscountPercentage = (discountTotal / originalTotal) * 100;
-    
-    //         // Calculate the delivery charge based on the total amount
-    //         let deliveryCharge = 0;
-    //         if (totalAmount < 1000) {
-    //             deliveryCharge = 100;
-    //         } else if (totalAmount >= 1000 && totalAmount <= 5000) {
-    //             deliveryCharge = 50;
-    //         }
-    
-    //         totalAmount += deliveryCharge;
-    //         totalAmount = parseFloat(totalAmount.toFixed(2)); // Ensure two decimal places
-    
-    //         if (addressIndex >= 0 && userData.cart.length > 0) {
-    //             const userCart = userData.cart;
-    
-    //             for (let i = 0; i < userCart.length; i++) {
-    //                 userCart[i].productId.quantity -= userCart[i].quantity;
-    
-    //                 if (userCart[i].productId.quantity < 0) {
-    //                     userCart[i].productId.quantity = 0;
-    //                 }
-    
-    //                 await Product.findByIdAndUpdate(
-    //                     { _id: userCart[i].productId._id },
-    //                     { $set: { quantity: userCart[i].productId.quantity },
-    //                     $inc: { popularity: userCart[i].quantity }
-    //                  }
-    //                 );
-    //             }
-    
-    //             let arr = [];
-    //             userCart.forEach((item) => {
-    //                 arr.push({
-    //                     productId: item.productId._id,
-    //                     quantity: item.quantity,
-    //                     regularPrice: item.productId.regularPrice,
-    //                     salePrice: item.productId.salePrice
-    //                 });
-    //             });
-    
-    //             const randomid = randomId();
-    //             async function randomId() {
-    //                 const min = 100000;
-    //                 const max = 999999;
-    //                 const randomSixDigitNumber = Math.floor(Math.random() * (max - min + 1)) + min;
-    //                 const orderData = await Order.findOne({ orderId: randomSixDigitNumber });
-    //                 if (orderData) {
-    //                     return await randomId();
-    //                 } else {
-    //                     return randomSixDigitNumber;
-    //                 }
-    //             }
-    //             const orderId = await randomid;
-    
-    //             const order = new Order({
-    //                 userId: userData._id,
-    //                 products: arr,
-    //                 addressIndex: addressIndex,
-    //                 totalAmount: totalAmount,
-    //                 originalTotal: originalTotal,
-    //                 discountTotal: discountTotal,
-    //                 totalDiscountPercentage: totalDiscountPercentage,
-    //                 paymentMethod: paymentMethod,
-    //                 orderId: orderId,
-    //                 coupon: coupon,
-    //                 adminTotal: totalAmount,
-    //                 shipping: deliveryCharge,
-    //             });
-    //             const orderData = await order.save();
-    
-    //             if (orderData) {
-    //                 userData.cart = [];
-    //                 await userData.save();
-    //                 setTimeout(() => {
-    //                     res.redirect('/userAccount');
-    //                 }, 2000);
-    //             } else {
-    //                 res.redirect('/checkOut');
-    //             }
-    //         } else {
-    //             res.redirect('/checkOut');
-    //         }
-    //     } catch (error) {
-    //         console.log(error.message);
-    //         res.redirect('/500');
-    //     }
-    // },
-
-
-
 
     placeOrder: async (req, res) => {
         try {
@@ -789,12 +651,10 @@ getWallet: async (req, res) => {
 onlinePayment: async (req, res) => {
     try {
         let totalAmount = parseFloat(req.query.totalAmount);
-        console.log("Total amount: "+totalAmount)
         const couponCode = req.session.couponCode;
-        console.log("coupon: "+couponCode)
         const couponData = await Coupon.findOne({ couponCode: couponCode });
         const userData = await User.findOne({ email: req.session.email }).populate('cart.productId');
-        console.log("userData: "+userData)
+    
         let flag = 0;
 
         const userCart = userData.cart;
@@ -1006,11 +866,7 @@ paymentSuccess: async (req, res) => {
 
 
 
-
-
-
-
-handlePaymentFailure: async (req, res) => {
+handlePaymentFailure : async (req, res) => {
     try {
         console.log("Handling payment failure...");
 
@@ -1059,14 +915,14 @@ handlePaymentFailure: async (req, res) => {
         totalAmount += deliveryCharge;
         totalAmount = parseFloat(totalAmount.toFixed(2));
 
-        console.log("length: "+userData.cart.length)
+        console.log("length: " + userData.cart.length)
 
-        const address = userData.address.find(addr => addr._id.toString() === addressId);
+        // Fetch the address using the addressId
+        const address = await Address.findById(addressId);
 
-         if (address && userData.cart.length > 0) {
+        if (address && userData.cart.length > 0) {
             const userCart = userData.cart;
-            console.log("usercart: "+userCart)
-            
+            console.log("usercart: " + userCart)
 
             for (let i = 0; i < userCart.length; i++) {
                 userCart[i].productId.quantity -= userCart[i].quantity;
@@ -1139,13 +995,12 @@ handlePaymentFailure: async (req, res) => {
                 res.redirect('/userAccount');
             }
         }
-        
-       
     } catch (error) {
         console.log(error.message);
         res.redirect('/500');
     }
 },
+
 
 
 
