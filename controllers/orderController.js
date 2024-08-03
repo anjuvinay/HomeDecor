@@ -1137,20 +1137,19 @@ rePayment: async (req, res) => {
 },
 
 
-initiatePayment: async(req,res)=>{
-    const user=req.session.userName
-   const orderId=req.query.orderId
-    const orderData = await Order.findById({ _id: orderId }).populate('products.productId').populate('userId')
-    // ....................................
+initiatePayment : async (req, res) => {
+    const user = req.session.userName;
+    const orderId = req.query.orderId;
+    const orderData = await Order.findById({ _id: orderId }).populate('products.productId').populate('userId');
 
     const email = req.session.email;
     const brands = await Brand.find({ is_active: true });
     const userData = await User.findOne({ email: email }).populate('cart.productId');
     const coupon = await Coupon.find({ is_active: true, "redeemedUsers.userId": { $ne: userData._id } });
     const categories = await Category.find({ is_active: true });
-  
 
-   
+    // Fetch user addresses
+    const addresses = await Address.find({ userId: userData._id });
 
     if (orderData.products.length > 0) {
         let originalTotal = 0;
@@ -1169,21 +1168,21 @@ initiatePayment: async(req,res)=>{
 
         totalDiscountPercentage = (discountTotal / originalTotal) * 100;
 
-         // Calculate delivery charge
-    const totalAmountAfterDiscount = originalTotal - discountTotal;
-    if (totalAmountAfterDiscount < 1000) {
-        deliveryCharge = 100;
-    } else if (totalAmountAfterDiscount >= 1000 && totalAmountAfterDiscount <= 5000) {
-        deliveryCharge = 50;
-    }
+        // Calculate delivery charge
+        const totalAmountAfterDiscount = originalTotal - discountTotal;
+        if (totalAmountAfterDiscount < 1000) {
+            deliveryCharge = 100;
+        } else if (totalAmountAfterDiscount >= 1000 && totalAmountAfterDiscount <= 5000) {
+            deliveryCharge = 50;
+        }
 
-          // Disable Cash On Delivery if total amount exceeds 1000
-    if (originalTotal - discountTotal > 1000) {
-        isCodDisabled = true;
-    }
+        // Disable Cash On Delivery if total amount exceeds 1000
+        if (originalTotal - discountTotal > 1000) {
+            isCodDisabled = true;
+        }
 
-     // Calculate final amount including delivery charge
-     const finalAmount = totalAmountAfterDiscount + deliveryCharge;
+        // Calculate final amount including delivery charge
+        const finalAmount = totalAmountAfterDiscount + deliveryCharge;
 
         return res.render('payment', {
             user: userData,
@@ -1194,44 +1193,44 @@ initiatePayment: async(req,res)=>{
             discountTotal: discountTotal.toFixed(2),
             totalDiscountPercentage: totalDiscountPercentage.toFixed(2),
             isCodDisabled,
-            deliveryCharge: deliveryCharge.toFixed(0) ,
+            deliveryCharge: deliveryCharge.toFixed(0),
             finalAmount: finalAmount.toFixed(2),
-            orderId:orderId,
-            totalAmount:finalAmount.toFixed(2),
-            orderData
+            orderId: orderId,
+            totalAmount: finalAmount.toFixed(2),
+            orderData,
+            addresses // Pass the addresses to the template
         });
     }
+},
 
-}, 
+
 
    
 walletRePayment: async (req, res) => {
     try {
-       
+        console.log("i reached here in wallet re payment")
         const email = req.session.email;
         const userData = await User.findOne({ email: email }).populate('cart.productId');
         const orderId = req.query.orderId;
-        const orderData = await Order.findById({ _id: orderId }).populate('products.productId').populate('userId')
-      
-       
-        const totalAmount=orderData.totalAmount
-                await Order.findByIdAndUpdate(
-                    { _id: orderId },
-                    { $set: { paymentStatus:"Success",paymentMethod:"Wallet" }}
-                );
+        const orderData = await Order.findById({ _id: orderId }).populate('products.productId').populate('userId');
 
-             // Update user's wallet
-               userData.wallet -= totalAmount;
-               await userData.save();
+        const totalAmount = orderData.totalAmount;
+        await Order.findByIdAndUpdate(
+            { _id: orderId },
+            { $set: { paymentStatus: "Success", paymentMethod: "Wallet" }}
+        );
 
-                res.redirect('/userAccount');
-            }
-     
-    catch (error) {
+        // Update user's wallet
+        userData.wallet -= totalAmount;
+        await userData.save();
+
+        res.redirect('/userAccount');
+    } catch (error) {
         console.log(error.message);
         res.redirect('/500');
     }
 },
+
 
 
 
