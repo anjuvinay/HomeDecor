@@ -7,6 +7,8 @@
     <link href="/assetsb/css/main.css" rel="stylesheet" type="text/css" />
     <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css">
+    <!-- SweetAlert CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 <body>
     <div class="screen-overlay"></div>
@@ -22,70 +24,67 @@
             </div>
             <div class="card">
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <form action="/admin/addCategoryOffer?categoryId=<%= specificCategory._id ? specificCategory._id : '' %>" method="post">
-                                <div class="mb-4">
-                                    <label for="product_name" class="form-label">Name</label>
-                                    <input type="text" placeholder="Type here" class="form-control" id="product_name" value="<%= specificCategory.categoryName %>"/>
-                                </div>
-                                <div class="mb-4">
-                                    <label for="product_slug" class="form-label">Discount in percentage</label>
-                                    <input type="number" placeholder="Type here" class="form-control" id="product_slug" name="discount" value="<%= specificCategory.discount %>"/>
-                                </div>
-                                <div class="mb-4">
-                                    <label class="form-label">Expiry Date</label>
-                                    <input type="date" name="expiry" value="<%= specificCategory.expiry ? specificCategory.expiry.toISOString().split('T')[0] : '' %>">
-                                </div>
-                                <div class="d-grid">
-                                    <button type="submit" class="btn btn-primary">Apply Offer</button>
-                                </div>
-                            </form>
-                            
-                        </div>
-                        <div class="col-md-9">
-                            <div class="table-responsive">
-                                <table id="categoryTable" class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>No</th>
-                                            <th>Name</th>
-                                            <th>Discount</th>
-                                            <th>Expiry</th>
-                                            <th>Offer Status</th>
-                                            <th class="text-end">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <% for (let i = 0; i < category.length; i++) { %>
-                                        <tr>
-                                            <td class="text-center"><%= i+1 %> </td>
-                                            <td><b><%= category[i].categoryName %></b></td>
-                                            <td><%= category[i].discount %>%</td>
-                                            <td><%= category[i].formattedExpiry %></td>
-                                            <% if (category[i].offerStatus) { %>
-                                                <td class="text-success">Active</td>
-                                            <% } else { %>
-                                                <td class="text-danger">Inactive</td>
-                                            <% } %>
-                                            <td class="text-end">
-                                                <% if (category[i].discount > 0) { %>
-                                                <a  href="/admin/editCategoryOffer?categoryId=<%= category[i]._id %>">
-                                                    <img style="height: 1.5rem; width: 1.5rem;" src="/assetsb/imgs/icons/pencil.png">
-                                                </a>&nbsp;&nbsp;&nbsp;
-                                                <a  href="/admin/deleteCategoryOffer?categoryId=<%= category[i]._id %>">
-                                                    <img style="height: 1.5rem; width: 1.5rem;" src="/assetsb/imgs/icons/bin (1).png"></a>
-                                                <% } else { %>
-                                                <a class="button button-gradient" href="/admin/addCategoryOffer?categoryId=<%= category[i]._id %>">Add Offer</a>
-                                                <% } %>
-                                            </td>
-                                        </tr>
+                    <div class="table-responsive">
+                        <table id="categoryTable" class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Name</th>
+                                    <th>Discount</th>
+                                    <th>Expiry</th>
+                                    <th>Offer Status</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% for (let i = 0; i < category.length; i++) { %>
+                                <tr>
+                                    <td class="text-center"><%= i+1 %> </td>
+                                    <td><b><%= category[i].categoryName %></b></td>
+                                    <td><%= category[i].discount > 0 ? category[i].discount + '%' : '' %></td>
+                                    <td><%= category[i].formattedExpiry %></td>
+                                    <% if (category[i].offerStatus) { %>
+                                        <td class="text-success">Active</td>
+                                    <% } else { %>
+                                        <td class="text-danger">Inactive</td>
+                                    <% } %>
+                                    <td class="text-end">
+                                        <% if (category[i].discount > 0) { %>
+                                        <a  href="/admin/editCategoryOffer?categoryId=<%= category[i]._id %>">
+                                            <img style="height: 1.5rem; width: 1.5rem;" src="/assetsb/imgs/icons/pencil.png">
+                                        </a>&nbsp;&nbsp;&nbsp;
+                                        <a  href="/admin/deleteCategoryOffer?categoryId=<%= category[i]._id %>">
+                                            <img style="height: 1.5rem; width: 1.5rem;" src="/assetsb/imgs/icons/bin (1).png"></a>
+                                        <% } else { %>
+                                        <a class="button button-gradient" href="#" onclick="toggleForm('<%= category[i]._id %>')">Add Offer</a>
                                         <% } %>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div> <!-- .col// -->
-                    </div> <!-- .row // -->
+                                    </td>
+                                </tr>
+                                <tr id="formRow-<%= category[i]._id %>" style="display: none;">
+                                    <td colspan="6">
+                                        <form id="addOfferForm-<%= category[i]._id %>" action="/admin/addCategoryOffer?categoryId=<%= category[i]._id %>" method="post" onsubmit="return validateForm('<%= category[i]._id %>')">
+                                            <div class="mb-4">
+                                                <label for="product_name_<%= category[i]._id %>" class="form-label">Name</label>
+                                                <input type="text" placeholder="Type here" class="form-control" id="product_name_<%= category[i]._id %>" value="<%= category[i].categoryName %>" readonly/>
+                                            </div>
+                                            <div class="mb-4">
+                                                <label for="product_slug_<%= category[i]._id %>" class="form-label">Discount in percentage</label>
+                                                <input type="number" placeholder="Type here" class="form-control" id="product_slug_<%= category[i]._id %>" name="discount" min="0" max="100" value="<%= category[i].discount %>" required/>
+                                            </div>
+                                            <div class="mb-4">
+                                                <label class="form-label">Expiry Date</label>
+                                                <input type="date" name="expiry" id="expiry_<%= category[i]._id %>" value="<%= category[i].expiry ? category[i].expiry.toISOString().split('T')[0] : '' %>" required>
+                                            </div>
+                                            <div class="d-grid">
+                                                <button type="submit" class="btn btn-primary">Apply Offer</button>
+                                            </div>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
                 </div> <!-- card body .// -->
             </div> <!-- card .// -->
         </section> <!-- content-main end// -->
@@ -98,12 +97,51 @@
     <script src="/assetsb/js/vendors/jquery.fullscreen.min.js"></script>
     <!-- DataTables JS -->
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js"></script>
+    <!-- SweetAlert JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Main Script -->
     <script src="/assetsb/js/main.js" type="text/javascript"></script>
     <script>
         $(document).ready(function() {
             $('#categoryTable').DataTable();
         });
+
+        function toggleForm(categoryId) {
+            const formRow = document.getElementById(`formRow-${categoryId}`);
+            if (formRow.style.display === 'none' || formRow.style.display === '') {
+                formRow.style.display = 'table-row';
+            } else {
+                formRow.style.display = 'none';
+            }
+        }
+
+        function validateForm(categoryId) {
+            const discountInput = document.getElementById(`product_slug_${categoryId}`);
+            const discountValue = discountInput.value;
+            const expiryInput = document.getElementById(`expiry_${categoryId}`);
+            const expiryDate = new Date(expiryInput.value);
+            const currentDate = new Date();
+
+            if (discountValue < 0 || discountValue > 100) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Discount',
+                    text: 'Discount percentage must be between 0 and 100.'
+                });
+                return false;
+            }
+
+            if (expiryDate < currentDate.setHours(0, 0, 0, 0)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Expiry Date',
+                    text: 'Expiry date must be today or a future date.'
+                });
+                return false;
+            }
+
+            return true;
+        }
     </script>
 </body>
 </html>

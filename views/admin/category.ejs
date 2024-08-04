@@ -7,7 +7,8 @@
     <link href="/assetsb/css/main.css" rel="stylesheet" type="text/css" />
     <!-- DataTables CSS -->
     <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css" />
-   
+    <!-- SweetAlert CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 
 <body>
@@ -34,25 +35,47 @@
                                         <span class="text-danger"><%= message %></span>
                                     <% } %>
                                 </div>
+                                <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
                                 <script>
-                                    // Define a JavaScript function called validateForm
                                     function validateForm() {
-                                        // Get the input element
                                         var inputElement = document.getElementById('product_name');
-                            
-                                        // Remove leading and trailing spaces
-                                        var trimmedValue = inputElement.value.trim();
-                            
-                                        // Check if the trimmed value is empty
-                                        if (trimmedValue === '') {
-                                            // Show an error message or handle the validation as needed
-                                            alert('Category name cannot be empty.');
-                                            return false; // Prevent form submission
+                                        var value = inputElement.value.trim();
+                                        
+                                        // Check if the value is empty
+                                        if (value === '') {
+                                            Swal.fire({
+                                                icon: 'error',
+                                                title: 'Invalid Input',
+                                                text: 'Category name cannot be empty.'
+                                            });
+                                            return false;
                                         }
-                            
+
+                                        // Check if the value starts with a number or special character
+                                        var startsWithNumberOrSpecialChar = /^[^a-zA-Z]/.test(value);
+                                        if (startsWithNumberOrSpecialChar) {
+                                            Swal.fire({
+                                                icon: 'error',
+                                                title: 'Invalid Input',
+                                                text: 'Category name should not start with a number or special character.'
+                                            });
+                                            return false;
+                                        }
+
+                                        // Check if the value contains only special characters
+                                        var containsOnlySpecialChars = /^[^a-zA-Z0-9]+$/.test(value);
+                                        if (containsOnlySpecialChars) {
+                                            Swal.fire({
+                                                icon: 'error',
+                                                title: 'Invalid Input',
+                                                text: 'Category name should not contain only special characters.'
+                                            });
+                                            return false;
+                                        }
+
                                         // Convert the trimmed input value to uppercase
-                                        inputElement.value = trimmedValue.toUpperCase();
-                            
+                                        inputElement.value = value.toUpperCase();
+                                        
                                         // Continue with form submission
                                         return true;
                                     }
@@ -85,17 +108,11 @@
                                             <td><span class="badge rounded-pill alert-danger">Blocked</span></td>
                                             <%}%>
                                             <td class="text-end">
-                                               
-                                                   
-                                                        
-                                                            <a class="button button-gradient" style="color: rgb(247, 241, 241);" href="/admin/editCategory?id=<%=category[i]._id%>">Edit</a>&nbsp;&nbsp; 
-                                                            <a class="button button-gradient1" style="color: white;" href="/admin/deleteCategory?id=<%=category[i]._id%>">Delete</a> 
-                                                            
-                                                      
-                                                    </td>
+                                                <a class="button button-gradient" style="color: rgb(247, 241, 241);" href="/admin/editCategory?id=<%=category[i]._id%>">Edit</a>&nbsp;&nbsp; 
+                                                <a class="button button-gradient1" style="color: white;" href="/admin/deleteCategory?id=<%=category[i]._id%>">Delete</a> 
+                                            </td>
                                         </tr>
                                         <%}%>
-                                   
                                     </tbody>
                                 </table>
                             </div>

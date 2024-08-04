@@ -11,9 +11,6 @@ const moment = require('moment');
 module.exports={
 
 
-
-
-
 addCategoryOffer: async (req, res) => {
   try {
       let admin = req.session.adminName;
