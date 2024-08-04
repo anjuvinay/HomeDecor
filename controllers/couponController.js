@@ -9,41 +9,53 @@ module.exports = {
     loadCouponPage : async(req,res)=>{
         try {
             let admin = req.session.adminName;
-            let message=''
-            if(req.query.message){
-                message='Coupon code already exists'
+            let message = '';
+            let couponCode = '';
+            let discount = '';
+            let minPurchase = '';
+            let expiry = '';
+
+            if (req.query.message) {
+                message = 'Coupon code already exists';
+                couponCode = req.query.couponCode || '';
+                discount = req.query.discount || '';
+                minPurchase = req.query.minPurchase || '';
+                expiry = req.query.expiry || '';
             }
-            const coupon=await Coupon.find({})
-            res.render('coupon',{coupon,message,admin})
+
+            const coupon = await Coupon.find({});
+            res.render('coupon', { coupon, message, admin, couponCode, discount, minPurchase, expiry });
         } catch (error) {
-            console.log(error.message)
-            res.redirect('/500')
+            console.log(error.message);
+            res.redirect('/500');
         }
     },
 
 
 
     addCoupon : async(req,res)=>{
-        try{
-            const {couponCode,discount,minPurchase,expiry}=req.body
-            const expirydate=expiry
-            const couponData=await Coupon.findOne({couponCode:couponCode})
-            if(couponData){
-                res.redirect('/admin/coupon?message=alreadyExists')
-            }else{
-                const newCoupon=new Coupon({
-                    couponCode:couponCode,
-                    discount:discount,
-                    minPurchase:minPurchase,
-                    expiry:expirydate,
-                    is_active:true
-                })
-                await newCoupon.save()
-                res.redirect('/admin/coupon')
+        try {
+            const { couponCode, discount, minPurchase, expiry } = req.body;
+            const expirydate = expiry;
+            const couponData = await Coupon.findOne({ couponCode: couponCode });
+
+            if (couponData) {
+                res.redirect(`/admin/coupon?message=alreadyExists&couponCode=${couponCode}&discount=${discount}&minPurchase=${minPurchase}&expiry=${expiry}`);
+            } else {
+                const newCoupon = new Coupon({
+                    couponCode: couponCode,
+                    discount: discount,
+                    minPurchase: minPurchase,
+                    expiry: expirydate,
+                    is_active: true
+                });
+
+                await newCoupon.save();
+                res.redirect('/admin/coupon');
             }
-        }catch(error){
-            console.log(error.message)
-            res.redirect('/500')
+        } catch (error) {
+            console.log(error.message);
+            res.redirect('/500');
         }
     },
 

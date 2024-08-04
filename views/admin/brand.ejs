@@ -18,6 +18,8 @@
             border-collapse: collapse;
         }
     </style>
+    <!-- SweetAlert CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 
 <body>
@@ -44,34 +46,64 @@
                                         <span class="text-danger"><%= message %></span>
                                     <% } %>
                                 </div>
-                              
+                                <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
                                 <script>
-                                    // Define a JavaScript function called toUpperCaseInput
+                                    // Function to convert input to uppercase
                                     function toUpperCaseInput(element) {
-                                        // Convert the input value to uppercase
                                         element.value = element.value.toUpperCase();
                                     }
-                            
-                                    // Define a JavaScript function called validateForm
+
+                                    // Function to validate the form
                                     function validateForm() {
-                                        // Get the input element for brand name
                                         var brandNameInput = document.getElementById('product_name');
-                            
-                                        // Remove leading and trailing spaces
-                                        var trimmedBrandName = brandNameInput.value.trim();
-                            
-                                        // Check if the trimmed value is empty
-                                        if (trimmedBrandName === '') {
-                                            // Show an error message or handle the validation as needed
-                                            alert('Brand name cannot be empty.');
-                                            return false; // Prevent form submission
+                                        var value = brandNameInput.value.trim();
+
+                                        // Check if the value is empty
+                                        if (value === '') {
+                                            Swal.fire({
+                                                icon: 'error',
+                                                title: 'Invalid Input',
+                                                text: 'Brand name cannot be empty.'
+                                            });
+                                            return false;
                                         }
-                            
+
+                                        // Check if the value starts with a space
+                                        if (value.startsWith(' ')) {
+                                            value = value.trim();
+                                            brandNameInput.value = value;
+                                        }
+
+                                        // Check if the value starts with a number or special character
+                                        var startsWithNumberOrSpecialChar = /^[^a-zA-Z]/.test(value);
+                                        if (startsWithNumberOrSpecialChar) {
+                                            Swal.fire({
+                                                icon: 'error',
+                                                title: 'Invalid Input',
+                                                text: 'Brand name should not start with a number or special character.'
+                                            });
+                                            return false;
+                                        }
+
+                                        // Check if the value contains only special characters or is a number
+                                        var containsOnlySpecialChars = /^[^a-zA-Z0-9]+$/.test(value);
+                                        var isNumber = /^[0-9]+$/.test(value);
+                                        if (containsOnlySpecialChars || isNumber) {
+                                            Swal.fire({
+                                                icon: 'error',
+                                                title: 'Invalid Input',
+                                                text: 'Brand name should not contain only special characters or be a number.'
+                                            });
+                                            return false;
+                                        }
+
+                                        // Trim the input value and set it back to the input element
+                                        brandNameInput.value = value;
+
                                         // Continue with form submission
                                         return true;
                                     }
                                 </script>
-                            
                                 <div class="d-grid">
                                     <input type="submit" class="btn btn-primary" value="Create Brand">
                                 </div>

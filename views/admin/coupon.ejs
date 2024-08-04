@@ -7,13 +7,14 @@
     <link href="/assetsb/css/main.css" rel="stylesheet" type="text/css" />
     <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet" type="text/css" />
     <style>
-        
         .coupon-code {
             font-size: 1rem; 
             font-weight: bold;
             color: #007bff; 
         }
     </style>
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 
 <body>
@@ -32,23 +33,26 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3">
-                            <form action="/admin/addCoupon" method="post">
+                            <form id="couponForm" action="/admin/addCoupon" method="post" onsubmit="return validateForm()">
                                 <div class="mb-4">
-                                    <label for="product_name" class="form-label">Coupon Code</label>
+                                    <label for="couponCode" class="form-label">Coupon Code</label>
                                     <input type="text" placeholder="Type here" class="form-control" id="couponCode" name="couponCode" required/>
-                                    <span class="text-danger"><%=message%></span>
+                                    <span class="text-danger" id="couponCodeError"></span>
                                 </div>
                                 <div class="mb-4">
-                                    <label for="product_slug" class="form-label">Discount Amount</label>
-                                    <input type="text" placeholder="Type here" class="form-control" id="product_slug" name="discount" required/>
+                                    <label for="discount" class="form-label">Discount Amount</label>
+                                    <input type="number" placeholder="Type here" class="form-control" id="discount" name="discount" required/>
+                                    <span class="text-danger" id="discountError"></span>
                                 </div>
                                 <div class="mb-4">
-                                    <label for="product_slug" class="form-label">Minimum Purchase</label>
-                                    <input type="text" placeholder="Type here" class="form-control" id="product_slug" name="minPurchase" required/>
+                                    <label for="minPurchase" class="form-label">Minimum Purchase</label>
+                                    <input type="number" placeholder="Type here" class="form-control" id="minPurchase" name="minPurchase" required/>
+                                    <span class="text-danger" id="minPurchaseError"></span>
                                 </div>
                                 <div class="mb-4">
                                     <label class="form-label">Expiry Date</label>
                                     <input type="date" name="expiry" required id="expiry" min="" />
+                                    <span class="text-danger" id="expiryError"></span>
                                 </div>
                                 <div class="d-grid">
                                     <button type="submit" class="btn btn-primary">Create Coupon</button>
@@ -57,12 +61,59 @@
                             <script>
                                 // Set the minimum date to the current date using Date.now()
                                 document.getElementById("expiry").min = new Date().toISOString().split('T')[0];
-                            </script>
-                            <script>
+                                
+                                // Convert coupon code to uppercase
                                 document.getElementById('couponCode').addEventListener('input', function(event) {
-                                    // Convert the entered value to uppercase
                                     this.value = this.value.toUpperCase();
                                 });
+
+                                function validateForm() {
+                                    let valid = true;
+
+                                    // Get form values
+                                    let couponCode = document.getElementById("couponCode").value;
+                                    let discount = parseFloat(document.getElementById("discount").value);
+                                    let minPurchase = parseFloat(document.getElementById("minPurchase").value);
+                                    let expiry = document.getElementById("expiry").value;
+
+                                    // Clear previous error messages
+                                    document.getElementById("couponCodeError").innerText = "";
+                                    document.getElementById("discountError").innerText = "";
+                                    document.getElementById("minPurchaseError").innerText = "";
+                                    document.getElementById("expiryError").innerText = "";
+
+                                    // Coupon Code validation
+                                    if (couponCode === "" || !/^[A-Za-z].*$/.test(couponCode) || couponCode.length < 2) {
+                                        document.getElementById("couponCodeError").innerText = "Invalid coupon code. It should start with a character and be at least 2 characters long.";
+                                        valid = false;
+                                    }
+
+                                    // Discount Amount validation
+                                    if (isNaN(discount) || discount <= 0) {
+                                        document.getElementById("discountError").innerText = "Discount amount should be a positive value.";
+                                        valid = false;
+                                    }
+
+                                    // Minimum Purchase validation
+                                    if (isNaN(minPurchase) || minPurchase <= 0) {
+                                        document.getElementById("minPurchaseError").innerText = "Minimum purchase amount should be a positive value.";
+                                        valid = false;
+                                    }
+
+                                    // Minimum Purchase should be greater than Discount Amount
+                                    if (minPurchase <= discount) {
+                                        document.getElementById("minPurchaseError").innerText = "Minimum purchase amount should be greater than discount amount.";
+                                        valid = false;
+                                    }
+
+                                    // Expiry Date validation
+                                    if (new Date(expiry) < new Date()) {
+                                        document.getElementById("expiryError").innerText = "Expiry date should be either current date or a future date.";
+                                        valid = false;
+                                    }
+
+                                    return valid;
+                                }
                             </script>
                         </div>
                         <div class="col-md-9">
@@ -98,11 +149,7 @@
                                             <td class="alert-danger text-danger">Blocked</td>
                                             <% } %>
                                             <td class="text-end">
-                                               
                                                 <a class="button button-gradient1" href="/admin/deleteCoupon?id=<%= coupon[i]._id %>">Delete</a>
-                                               
-                                                
-                                              
                                             </td>
                                         </tr>
                                         <% } %>
@@ -116,6 +163,8 @@
         </section> <!-- content-main end// -->
         <%- include('footer') %>
     </main>
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
     <script src="/assetsb/js/vendors/jquery-3.6.0.min.js"></script>
     <script src="/assetsb/js/vendors/bootstrap.bundle.min.js"></script>
     <script src="/assetsb/js/vendors/select2.min.js"></script>
@@ -129,6 +178,15 @@
         $(document).ready(function() {
             $('#couponTable').DataTable();
         });
+
+        // Check if there's a message and display the SweetAlert
+        <% if (message) { %>
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: '<%= message %>',
+            });
+        <% } %>
     </script>
 </body>
 </html>
