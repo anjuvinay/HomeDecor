@@ -25,6 +25,10 @@
             margin: 20px auto; /* Center align button */
             background-color: #769796; /* Ensure button color */
         }
+        .error-message {
+            color: red;
+            font-size: 0.875rem;
+        }
     </style>
 </head>
 
@@ -48,19 +52,23 @@
                                     <div class="mb-4">
                                         <label for="product_title" class="form-label">Product Name</label>
                                         <input type="text" placeholder="Type here" class="form-control" id="product_title" name="title" required>
+                                        <div class="error-message" id="product_title_error"></div>
                                     </div>
                                     <div class="row gx-3">
                                         <div class="col-md-4 mb-3">
                                             <label for="product_sku" class="form-label">Material</label>
                                             <input type="text" min="0" placeholder="Type here" class="form-control" id="product_sku" name="material" required>
+                                            <div class="error-message" id="product_sku_error"></div>
                                         </div>
                                         <div class="col-md-4 mb-3">
                                             <label for="product_color" class="form-label">Color</label>
                                             <input type="text" placeholder="Type here" class="form-control" id="product_color" name="color" required>
+                                            <div class="error-message" id="product_color_error"></div>
                                         </div>
                                         <div class="col-md-4 mb-3">
                                             <label for="product_size" class="form-label">Shape</label>
                                             <input type="text" placeholder="Type here" class="form-control" id="product_size" name="shape" required>
+                                            <div class="error-message" id="product_size_error"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -70,6 +78,7 @@
                                     <div>
                                         <label class="form-label">Description</label>
                                         <textarea placeholder="Type here" class="form-control" rows="4" name="description" required></textarea>
+                                        <div class="error-message" id="description_error"></div>
                                     </div>
                                 </div>
                             </div> <!-- card end// -->
@@ -197,6 +206,45 @@
                                 reader.readAsDataURL(file);
                             });
                         }
+                    }
+
+                    function validateForm() {
+                        const productName = document.getElementById('product_title').value.trim();
+                        const material = document.getElementById('product_sku').value.trim();
+                        const color = document.getElementById('product_color').value.trim();
+                        const shape = document.getElementById('product_size').value.trim();
+                        const description = document.querySelector('textarea[name="description"]').value.trim();
+
+                       
+                        const specialCharPattern = /^[!@#$%^&*()_+=[\]{};':"\\|,.<>/?0-9-]/;
+                        const singleSpecialCharOrNumberPattern = /^[!@#$%^&*()_+=[\]{};':"\\|,.<>/?0-9-\s]+$/;
+
+
+                        let isValid = true;
+
+                        const fields = [
+                            { value: productName, name: "Product Name", errorElement: document.getElementById('product_title_error') },
+                            { value: material, name: "Material", errorElement: document.getElementById('product_sku_error') },
+                            { value: color, name: "Color", errorElement: document.getElementById('product_color_error') },
+                            { value: shape, name: "Shape", errorElement: document.getElementById('product_size_error') },
+                            { value: description, name: "Description", errorElement: document.getElementById('description_error') }
+                        ];
+
+                        for (const field of fields) {
+                            field.errorElement.textContent = ""; // Clear previous error message
+                            if (field.value === "") {
+                                field.errorElement.textContent = `${field.name} cannot be empty`;
+                                isValid = false;
+                            } else if (specialCharPattern.test(field.value)) {
+                                field.errorElement.textContent = `${field.name} cannot start with a special character or number`;
+                                isValid = false;
+                            } else if (singleSpecialCharOrNumberPattern.test(field.value)) {
+                                field.errorElement.textContent = `${field.name} cannot be a single special character or number`;
+                                isValid = false;
+                            }
+                        }
+
+                        return isValid;
                     }
                 </script>
             </section>
