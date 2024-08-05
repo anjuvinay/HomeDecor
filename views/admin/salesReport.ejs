@@ -10,6 +10,9 @@
         .no-print {
             display: none !important;
         }
+        .hide-for-print {
+            display: none !important;
+        }
         @media print {
             .no-print {
                 display: none !important;
@@ -18,10 +21,10 @@
                 overflow: visible !important;
             }
             body {
-                font-size: 10px; /* Reduce font size for printing */
+                font-size: 10px; 
             }
             table {
-                width: 100%; /* Ensure the table spans the full width */
+                width: 100%; 
             }
             th, td {
                 padding: 4px; /* Reduce padding to save space */
@@ -38,8 +41,10 @@
     </style>
 </head>
 <body>
-    <%- include('header') %>
-    <div class="screen-overlay"></div>
+    <div class="top-section hide-for-print">
+        <%- include('header') %>
+        <div class="screen-overlay"></div>
+    </div>
     <section class="content-main">
         <div class="content-header">
             <div>
@@ -91,6 +96,7 @@
                             <table id="salesTable" class="table table-hover">
                                 <thead>
                                     <tr>
+                                        <th>Date</th>
                                         <th>ID</th>
                                         <th>Customer Name</th>
                                         <th>Original Price</th>
@@ -99,13 +105,14 @@
                                         <th>Discount %</th>
                                         <th>Coupon</th>
                                         <th>Status</th>
-                                        <th>Date</th>
+                                        
                                         <th class="text-end action-column">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <% orders.forEach(order => { %>
                                         <tr>
+                                            <td><%= moment(order.orderDate).format('DD-MM-YYYY') %></td>
                                             <td><%= order.orderId %></td>
                                             <td><b><%= order.userId ? order.userId.name : 'N/A' %></b></td>
                                             <td>₹<%= order.originalTotal ? order.originalTotal.toFixed(2) : 'N/A' %></td>
@@ -118,7 +125,7 @@
                                             <% } else { %>
                                                 <td><span class="text-success"><%= order.orderstatus %></span></td>
                                             <% } %>
-                                            <td><%= moment(order.orderDate).format('DD-MM-YYYY') %></td>
+                                            
                                             <td class="text-end action-column">
                                                 <a href="/admin/orderDetails?orderId=<%= order._id %>" class="btn btn-md rounded font-sm">Detail</a>
                                             </td>
@@ -184,7 +191,7 @@
     <script src="/assetsb/js/main.js" type="text/javascript"></script>
     <script>
         $(document).ready(function() {
-            $('#salesTable').DataTable();
+            var table = $('#salesTable').DataTable();
 
             // Add event listener to the date range dropdown
             $('#dateRange').change(function() {
@@ -230,8 +237,10 @@
                 $('input[name="endDate"]').val(endDate);
             });
 
-            const printid = document.getElementById('printScreen');
-            printid.addEventListener('click', function() {
+            $('#printScreen').on('click', function() {
+                // Disable pagination
+                table.page.len(-1).draw();
+
                 // Hide user controls and action column before printing
                 document.querySelector('.content-actions').classList.add('no-print');
                 document.querySelector('header.card-header').classList.add('no-print');
@@ -239,11 +248,15 @@
                 document.querySelector('.dataTables_filter').classList.add('no-print');
                 document.querySelector('.dataTables_paginate').classList.add('no-print');
                 document.querySelector('.dataTables_info').classList.add('no-print');
+                document.querySelector('.top-section').classList.add('no-print');
                 document.querySelectorAll('.action-column').forEach(function(el) {
                     el.classList.add('hide-column');
                 });
 
                 window.print();
+
+                // Re-enable pagination
+                table.page.len(10).draw();
 
                 // Show user controls and action column after printing
                 document.querySelector('.content-actions').classList.remove('no-print');
@@ -252,6 +265,7 @@
                 document.querySelector('.dataTables_filter').classList.remove('no-print');
                 document.querySelector('.dataTables_paginate').classList.remove('no-print');
                 document.querySelector('.dataTables_info').classList.remove('no-print');
+                document.querySelector('.top-section').classList.remove('no-print');
                 document.querySelectorAll('.action-column').forEach(function(el) {
                     el.classList.remove('hide-column');
                 });
