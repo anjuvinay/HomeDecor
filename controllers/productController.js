@@ -27,79 +27,6 @@ module.exports = {
         }
     },
     
-    
-    
-    // addNewProduct : async (req, res) => {
-    //     try {
-    //         let salePrice;
-    //         if (req.body.discountPercentage.trim() > 0) {
-    //             salePrice = req.body.regularPrice - (req.body.regularPrice.trim() * req.body.discountPercentage / 100);
-    //         } else {
-    //             salePrice = req.body.regularPrice.trim();
-    //         }
-    
-    //         const imagePromises = req.files.map(async (file) => {
-    //             const imagePath = `uploads/${file.filename}`;
-    //             const resizedImagePath = `uploads/resized_${file.filename}`;
-    //             await sharp(imagePath)
-    //                 .resize({ width: 400, height: 400 })
-    //                 .toFile(resizedImagePath);
-    
-    
-    //                 //Remove the original uploaded image
-    //                 fs.unlink(imagePath, (err) => {
-    //                     if (err) {
-    //                         console.error('Failed to delete original image', err);
-    //                     } else {
-    //                         console.log('Original image deleted successfully');
-    //                     }
-    //                 });
-    
-    //             return resizedImagePath;
-    //         });
-    
-    //         const resizedImageUrls = await Promise.all(imagePromises);
-    
-    
-    
-    //         const productData = {
-    //             title: req.body.title.trim(),
-    //             material: req.body.material.trim(),
-    //             color: req.body.color.trim(),
-    //             shape: req.body.shape.trim(),
-    //             brandId: req.body.brand.trim(),
-    //             description: req.body.description.trim(),
-    //             regularPrice: req.body.regularPrice.trim(),
-    //             discountPercentage: req.body.discountPercentage.trim(),
-    //             bestDiscount: req.body.discountPercentage.trim(),
-    //             discountPrice: salePrice,
-    //             salePrice: salePrice,
-    //             quantity: req.body.quantity.trim(),
-    //             categoryId: req.body.category.trim(),
-    //             rating: req.body.rating.trim(),
-    //             featured:req.body.featured.trim(),
-    //             image: resizedImageUrls,
-    //         };
-    
-    //         const product = new Product(productData);
-    
-    //         const savedProduct = await product.save();
-    
-    //         if (savedProduct) {
-    //             res.redirect('/admin/productsList');
-    //         } else {
-    //             console.log('Error saving product');
-    //             res.status(500).send('Error saving product');
-    //         }
-    //     } catch (error) {
-    //         console.error(error.message);
-    //         res.redirect('/500')
-            
-    //     }
-    // },
-
-
-
 
    
     
@@ -158,7 +85,6 @@ module.exports = {
                 salePrice: salePrice,
                 quantity: req.body.quantity.trim(),
                 categoryId: req.body.category.trim(),
-                rating: req.body.rating.trim(),
                 featured: req.body.featured.trim(),
                 image: resizedImageUrls,
             };
@@ -367,7 +293,7 @@ module.exports = {
                         salePrice: salePrice,
                         quantity: req.body.quantity.trim(),
                         categoryId: req.body.category.trim(),
-                        rating: req.body.rating.trim(),
+                        
                         featured:req.body.featured.trim(),
                         image: Newimages // Ensure images are updated here
                     }
@@ -713,92 +639,7 @@ module.exports = {
         }
     },
     
-    
-
-
-    
-    // showCheckOut: async (req, res) => {
-    //     try {
-    //         const email = req.session.email;
-    //         const brands = await Brand.find({ is_active: true });
-    //         const userData = await User.findOne({ email: email }).populate('cart.productId');
-    //         const coupon = await Coupon.find({ is_active: true, "redeemedUsers.userId": { $ne: userData._id } });
-    //         const categories = await Category.find({ is_active: true });
-    //         let flag = 0;
-            
-    //         userData.cart.forEach(item => {
-    //             if (item.productId.quantity < 1) {
-    //                 flag = 1;
-    //             } else if (item.productId.quantity < item.quantity) {
-    //                 flag = 2;
-    //             }
-    //         });
-    
-    //         if (flag == 1) {
-    //             return res.redirect('/cart?message=stockout');
-    //         } else if (flag == 2) {
-    //             return res.redirect('/cart?message=stocklow');
-    //         }
-    
-    //         if (userData.cart.length > 0) {
-    //             let originalTotal = 0;
-    //             let discountTotal = 0;
-    //             let totalDiscountPercentage = 0;
-    //             let isCodDisabled = false;
-    //             let deliveryCharge = 0;
-    
-    //             userData.cart.forEach(item => {
-    //                 const originalPrice = item.productId.regularPrice * item.quantity;
-    //                 const salePrice = item.productId.salePrice * item.quantity;
-    //                 const discountAmount = originalPrice - salePrice;
-    //                 originalTotal += originalPrice;
-    //                 discountTotal += discountAmount;
-    //             });
-    
-    //             totalDiscountPercentage = (discountTotal / originalTotal) * 100;
-
-    //              // Calculate delivery charge
-    //         const totalAmountAfterDiscount = originalTotal - discountTotal;
-    //         if (totalAmountAfterDiscount < 1000) {
-    //             deliveryCharge = 100;
-    //         } else if (totalAmountAfterDiscount >= 1000 && totalAmountAfterDiscount <= 5000) {
-    //             deliveryCharge = 50;
-    //         }
-
-    //               // Disable Cash On Delivery if total amount exceeds 1000
-    //         if (originalTotal - discountTotal > 1000) {
-    //             isCodDisabled = true;
-    //         }
-
-    //          // Calculate final amount including delivery charge
-    //          const finalAmount = totalAmountAfterDiscount + deliveryCharge;
-    
-    //             return res.render('checkout', {
-    //                 user: userData,
-    //                 categories,
-    //                 brands,
-    //                 coupon,
-    //                 originalTotal: originalTotal.toFixed(2),
-    //                 discountTotal: discountTotal.toFixed(2),
-    //                 totalDiscountPercentage: totalDiscountPercentage.toFixed(2),
-    //                 isCodDisabled,
-    //                 deliveryCharge: deliveryCharge.toFixed(0) ,
-    //                 finalAmount: finalAmount.toFixed(2) 
-    //             });
-    //         } else {
-    //             return res.redirect('/cart');
-    //         }
-    
-    //     } catch (error) {
-    //         console.log(error.message);
-    //         return res.redirect('/500');
-    //     }
-    // },
-
-
-
-    
-    
+     
     
     
 
