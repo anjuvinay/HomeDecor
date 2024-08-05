@@ -10,6 +10,24 @@
     <link rel="stylesheet" href="assets/css/maind134.css?v=3.4">
     <link rel="stylesheet" href="assets/js/magiczoom/magiczoom.css">
     <script src="assets/js/magiczoom/magiczoom.js"></script>
+    <style>
+        .star-rating {
+            display: flex;
+        }
+
+        .star {
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+        input[type="checkbox"] {
+            display: none;
+        }
+
+        input[type="checkbox"]:checked+label {
+            color: gold;
+        }
+    </style>
 </head>
 
 <body>
@@ -66,6 +84,17 @@
                                                             <%=product.brandId.brandName %>
                                                     </span>
                                                 </div>
+                                                <%if(product.productReview.length>0){%>
+                                                    <div class="product-rate-cover text-end">
+                                                        <div class="product-rate d-inline-block">
+                                                            <div class="product-rating" id="product-ratingtop">
+                                                            </div>
+                                                        </div>
+                                                        <span class="font-small ml-5 text-muted"> (
+                                                            <%=product.productReview.length%> reviews)
+                                                        </span>
+                                                    </div>
+                                                    <%}%>
                                             </div>
                                             <div class="clearfix product-price-cover">
                                                 <div class="product-price primary-color float-left">
@@ -236,6 +265,194 @@
                                         </table>
                                     </div>
                                 </div>
+
+
+
+
+
+
+                                        <!-- <h3 class="section-title style-1 mb-30 mt-30">Reviews (3)</h3> -->
+                                        <!--Comments-->
+                                        <%if(product.productReview.length>0){%>
+                                            <div class="comments-area style-2">
+                                                <div class="row">
+                                                    <div class="col-lg-8">
+                                                        <h4 class="mb-30">Customer Reviews</h4>
+                                                        <div class="comment-list">
+                                                            <% for (let i = 0; i < (product.productReview.length > 5 ? 5 : product.productReview.length); i++) { %>
+                                                                <div
+                                                                    class="single-comment justify-content-between d-flex">
+                                                                    <div class="user justify-content-between d-flex">
+                                                                        <div class="thumb text-center">
+                                                                            <img src="assets/imgs/page/avatar-6.jpg"
+                                                                                alt="">
+                                                                            <h6><a href="#">
+                                                                                    <%=product.productReview[i].userId.name%>
+                                                                                </a></h6>
+                                                                            <p class="font-xxs">
+                                                                                <%=product.productReview[i].userId.date%>
+
+                                                                            </p>
+                                                                        </div>
+                                                                        <div class="desc">
+
+                                                                            <div class="star-rating" id="ratingStars">
+                                                                                <% for (let j=1; j <=5; j++) { %>
+                                                                                    <input disabled type="checkbox"
+                                                                                        id="star<%= j %>" <% if
+                                                                                        (product.productReview[i].rating>=
+                                                                                    j) { %>checked<% } %> name="rating"
+                                                                                        value="<%= j %> " />
+                                                                                            <label for="star<%= j %>"
+                                                                                                class="star"><i
+                                                                                                    class="fas fa-star"></i></label>
+                                                                                            <% } %>
+
+
+                                                                            </div>
+
+
+                                                                            <p>
+                                                                                <%=product.productReview[i].comment%>
+                                                                            </p>
+                                                                            <div class="d-flex justify-content-between">
+                                                                                <div class="d-flex align-items-center">
+                                                                                    <p class="font-xs mr-30">
+                                                                                        <%=product.productReview[i].date.toLocaleString()%>
+                                                                                    </p>
+                                                                                    <!-- <a href="#" class="text-brand btn-reply">Reply <i class="fi-rs-arrow-right"></i> </a> -->
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <%}%>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-lg-4">
+                                                        <h4 class="mb-30">Customer reviews</h4>
+                                                        <div class="d-flex mb-30">
+                                                            <div class="product-rate d-inline-block mr-15">
+                                                                <div class="product-rating" id="product-rating">
+                                                                </div>
+                                                            </div>
+
+                                                            <h6 id="rating-message"></h6>
+                                                        </div>
+                                                        <div class="progress">
+                                                            <span>5 star</span>
+                                                            <div class="progress-bar" role="progressbar" id="ratingFive"
+                                                                aria-valuemin="0" aria-valuemax="100">
+                                                            </div>
+                                                        </div>
+                                                        <div class="progress">
+                                                            <span>4 star</span>
+                                                            <div class="progress-bar" role="progressbar" id="ratingFour"
+                                                                aria-valuemin="0" aria-valuemax="100">
+                                                            </div>
+                                                        </div>
+                                                        <div class="progress">
+                                                            <span>3 star</span>
+                                                            <div class="progress-bar" role="progressbar"
+                                                                id="ratingThree" aria-valuemin="0" aria-valuemax="100">
+                                                            </div>
+                                                        </div>
+                                                        <div class="progress">
+                                                            <span>2 star</span>
+                                                            <div class="progress-bar" role="progressbar" id="ratingTwo"
+                                                                aria-valuemin="0" aria-valuemax="100">
+                                                            </div>
+                                                        </div>
+                                                        <div class="progress mb-30">
+                                                            <span>1 star</span>
+                                                            <div class="progress-bar" role="progressbar" id="ratingOne"
+                                                                aria-valuemin="0" aria-valuemax="100">
+                                                            </div>
+                                                        </div>
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <%}%>
+                                                <!--comment form-->
+                                                <script>
+                                                    window.onload = function () {
+                                                        // Replace these sample ratings with your actual ratings
+
+
+                                                        // Calculate average rating
+                                                        let totalRating = 0
+                                                        let ratingOne = 0
+                                                        let ratingTwo = 0
+                                                        let ratingThree = 0
+                                                        let ratingFour = 0
+                                                        let ratingFive = 0
+                                                            <% for (let i = 0; i < product.productReview.length; i++) { %>
+                                                                totalRating += <%= product.productReview[i].rating %>;
+                                                        <% if (product.productReview[i].rating == '1') { %>
+                                                                    ratingOne++
+                                                                    <% } else if (product.productReview[i].rating == '2') { %>
+                                                                        ratingTwo++
+                                                                        <% } else if (product.productReview[i].rating == '3') { %>
+                                                                            ratingThree++
+                                                                            <%  } else if (product.productReview[i].rating == '4') { %>
+                                                                                ratingFour++
+                                                                                <% } else if (product.productReview[i].rating == '5') { %>
+                                                                                    ratingFive++
+                                                                                    <% } %>
+                                            <% } %>
+                                            const averageRating = totalRating / <%=product.productReview.length%>;
+
+                                                        // Set up average rating
+                                                        const averageRatingContainer = document.getElementById('product-rating'); // Make sure you have this element in your HTML
+                                                        if (averageRatingContainer) {
+                                                            averageRatingContainer.style.width = `${(averageRating / 5) * 100}%`;
+                                                        }
+                                                        console.log((averageRating / 5) * 100)
+                                                        document.getElementById('product-ratingtop').style.width = `${(averageRating / 5) * 100}%`;
+                                                        let oneStar = document.getElementById('ratingOne')
+                                                        let twoStar = document.getElementById('ratingTwo')
+                                                        let threeStar = document.getElementById('ratingThree')
+                                                        let fourStar = document.getElementById('ratingFour')
+                                                        let fiveStar = document.getElementById('ratingFive')
+                                                        
+                                                        oneStar.style.width = `${ Math.round((ratingOne / <%= product.productReview.length %>) * 100) }% `;
+                                                       oneStar.innerHTML = `${ Math.round((ratingOne / <%= product.productReview.length %>) * 100) }% `;
+
+                                                        twoStar.style.width = `${ Math.round((ratingTwo / <%= product.productReview.length %>) * 100) }% `;
+                                                        twoStar.innerHTML = `${ Math.round((ratingTwo / <%= product.productReview.length %>) * 100) }% `;
+
+                                                        threeStar.style.width = `${ Math.round((ratingThree / <%= product.productReview.length %>) * 100) }% `;
+                                                        threeStar.innerHTML = `${ Math.round((ratingThree / <%= product.productReview.length %>) * 100) }% `;
+
+                                                        fourStar.style.width = `${ Math.round((ratingFour / <%= product.productReview.length %>) * 100) }% `;
+                                                        fourStar.innerHTML = `${ Math.round((ratingFour / <%= product.productReview.length %>) * 100) }% `;
+
+                                                        fiveStar.style.width = `${ Math.round((ratingFive / <%= product.productReview.length %>) * 100) }% `;
+                                                        fiveStar.innerHTML = `${ Math.round((ratingFive / <%= product.productReview.length %>) * 100) }% `;
+
+                                                    // Display average rating
+                                                    const averageRatingText = document.getElementById('rating-message');
+                                                    if (averageRatingText) {
+                                                        // Include the average rating within the h6 element
+                                                        averageRatingText.innerHTML = ` ${ averageRating.toFixed(1) } out of 5`;
+                                                    }
+
+                                                    
+                                                };
+                                                </script>
+                                    </div>
+                                </div>
+
+
+
+
+
+
+
+
+
+
                                 <%if(relatedProducts.length>0){%>
                                 <div class="row mt-60">
                                     <div class="col-12">
@@ -282,6 +499,7 @@
             </section>
         </main>
         <%- include('footer') %>
+        
         
         <!-- Vendor JS-->
         <script src="assets/js/vendor/modernizr-3.6.0.min.js"></script>

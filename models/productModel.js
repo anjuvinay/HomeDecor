@@ -88,8 +88,28 @@ const productSchema = mongoose.Schema({
     featured: {
         type: Boolean,
         default: false
-    }
-   
+    },
+    productReview: [
+        {
+            userId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User'
+            },
+            comment:{
+                type:String
+            },
+            rating:{
+                type:Number
+            },
+            date:{
+                type:Date,
+                default: Date.now,
+                get: (timestamp) => {
+                    return new Date(timestamp).toLocaleDateString('en-IN');
+                },
+            }
+        }
+    ]
 })
 productSchema.index({ title: 'text' });
 

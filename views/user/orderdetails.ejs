@@ -19,7 +19,124 @@
 
 <body>
     <%- include('userHeader') %>
+    <!-- .................................................................... -->
+    <div class="modal" id="createReviewModal" tabindex="-1" role="dialog" aria-labelledby="createReviewModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createReviewModalLabel">Create Review</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <label for="rating">Rating:</label>
+                    <div class="star-rating" id="ratingStars">
+                        <input type="checkbox" id="star1" name="rating" value="1" />
+                        <label for="star1" class="star"><i class="fas fa-star"></i></label>
 
+                        <input type="checkbox" id="star2" name="rating" value="2" />
+                        <label for="star2" class="star"><i class="fas fa-star"></i></label>
+
+                        <input type="checkbox" id="star3" name="rating" value="3" />
+                        <label for="star3" class="star"><i class="fas fa-star"></i></label>
+
+                        <input type="checkbox" id="star4" name="rating" value="4" />
+                        <label for="star4" class="star"><i class="fas fa-star"></i></label>
+
+                        <input type="checkbox" id="star5" name="rating" value="5" />
+                        <label for="star5" class="star"><i class="fas fa-star"></i></label>
+                    </div><br>
+
+                    <label for="comment">Comment:</label>
+                    <textarea id="comment" name="comment" rows="4" required></textarea>
+                </div>
+                
+                <input type="hidden" id="modalProductId" name="productId">
+
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="submitReview()">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const stars = document.querySelectorAll('.star-rating input');
+
+            stars.forEach(function (star, index) {
+                star.addEventListener('click', function () {
+                    const clickedStarValue = parseInt(this.value);
+
+                    for (let i = 0; i <= index; i++) {
+                        stars[i].checked = true;
+                    }
+
+                    for (let i = index + 1; i < stars.length; i++) {
+                        stars[i].checked = false;
+                    }
+                });
+            });
+        });
+    </script>
+    <script>
+        function submitReview() {
+            // Get the selected rating
+            const stars = document.querySelectorAll('.star-rating input:checked');
+            const rating = stars.length > 0 ? parseInt(stars[stars.length - 1].value) : 0;
+            const productId = document.getElementById('modalProductId').value
+            // Get the comment
+            const comment = document.getElementById('comment').value;
+
+            // Validate that a rating is selected
+            if (rating === 0 ) {
+                alert('Please select a rating before submitting.');
+                return;
+            }else if(comment==''){
+                alert('Please write your review')
+                return
+            }
+
+            // Create an object to hold the data
+            const reviewData = {
+                rating: rating,
+                comment: comment,
+                productId: productId
+            };
+
+            // Use fetch to send the data to the server
+            fetch('/createProductReview', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(reviewData),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    Swal.fire({
+                            title: "Review submitted successfully",
+                            icon: "success"
+                    // console.log('Success:', data);
+                    })
+                    // Handle success (e.g., update UI, show success message)
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Handle errors (e.g., show error message)
+                })
+                .finally(() => {
+                    setTimeout(function(){
+                        window.location.reload()
+                    },1000)
+                    
+                });
+        }
+    </script>
+<!-- .................................................................... -->
     <main class="text-center">
         <section class="content-main">
             <div class="content-header">
@@ -117,6 +234,7 @@
                                             <th width="20%">Total</th>
                                             <th width="20%">Status</th>
                                             <th width="20%">Action</th>
+                                            <th width="20%">Review</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -132,6 +250,7 @@
                                                         </div>
                                                     </a>
                                                 </td>
+                                               
                                                 <td><%= orders.products[i].regularPrice %></td>
                                                 <td><%= orders.products[i].salePrice.toFixed(2) %></td>
                                                 <td><%= orders.products[i].quantity %></td>
@@ -154,9 +273,35 @@
                                                         <span class="text-muted"><%= orders.products[i].status %></span>
                                                     <% } %>
                                                 </td>
+                                                <% if (orders.products[i].status === 'Delivered') { %>
+                                               
+                                                    <td>
+                                                        <a class="btn btn-secondary create-review-btn"
+                                                        data-toggle="modal"
+                                                        data-target="#createReviewModal"
+                                                        data-product-id="<%= orders.products[i].productId._id %>"
+                                                        onclick="setModalProductId('<%= orders.products[i].productId._id %>')">
+                                                        Write a Review
+                                                    </a>
+                                                    
+                                                    </td>
+
+                                                    <script>
+                                                        function setModalProductId(productId) {
+                                                            // Set the value of the hidden input field
+                                                            console.log(productId)
+                                                            document.getElementById('modalProductId').value = productId;
+                                                        }
+                                                    
+                                                        // ... (other JavaScript code)
+                                                    </script>
+                                                    
+
+                                                    <%}%>
                                             </tr>
                                         <% } %>
                                         <tr>
+                                            
                                             <td colspan="6">
                                                 <article class="float-end">
                                                     <% if (orders.coupon != null) { %>

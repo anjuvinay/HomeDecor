@@ -90,6 +90,7 @@ userRoute.get('/returnOrder', orderController.returnOrder)
 userRoute.get('/cancelProduct',auth.isLogin, orderController.cancelProduct);
 userRoute.post('/returnProduct', auth.isLogin, orderController.returnProduct);
 
+userRoute.post('/createProductReview', orderController.createProductReview)
 
 
 

@@ -1347,4 +1347,59 @@ placeReorder: async (req, res) => {
     }
 },
 
+
+createProductReview : async (req, res) => {
+    try {
+        const userData=await User.findOne({email:req.session.email})
+        const userId=userData._id
+        const {  rating, comment, productId } = req.body;
+        console.log('here is the results')
+        console.log(productId)
+        console.log(comment)
+       
+        console.log(rating)
+        // Validate the data
+        if (!productId || !rating || !comment) {
+            return res.status(400).json({ error: 'User ID, rating, and comment are required.' });
+        }
+
+        // Check if a review by the user already exists for the product
+        const productData = await Product.findOne({ _id: productId });
+
+        try {
+            const obj = {
+                userId: userId,
+                comment: comment,
+                rating: rating,
+                date: Date.now(),
+                get: (timestamp) => new Date(timestamp).toLocaleDateString('en-US'),
+                // Add other fields specific to the first review if needed
+            };
+
+
+            productData.productReview.push(obj);
+            await productData.save();
+
+            let totalRating=0
+            for(item of productData.productReview){
+                totalRating +=  item.rating
+                }
+    const averageRating = totalRating / productData.productReview.length
+                productData.rating=averageRating/5*100
+                await productData.save()
+           
+
+            const message = productData.productReview.length > 1 ? 'Review updated successfully' : 'First review created successfully';
+
+            res.status(200).json({ message: message, review: obj });
+        } catch (error) {
+            console.error(error.message);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+},
+
 }
