@@ -6,6 +6,36 @@
     <link href="/assetsb/css/main.css" rel="stylesheet" type="text/css" />
     <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <style>
+        .no-print {
+            display: none !important;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .table-responsive-print {
+                overflow: visible !important;
+            }
+            body {
+                font-size: 10px; /* Reduce font size for printing */
+            }
+            table {
+                width: 100%; /* Ensure the table spans the full width */
+            }
+            th, td {
+                padding: 4px; /* Reduce padding to save space */
+                font-size: 10px; /* Ensure table font size is small */
+                word-break: break-word; /* Handle long text */
+            }
+            th {
+                font-weight: bold; /* Keep headers bold */
+            }
+            .hide-column {
+                display: none !important; /* Hide entire column during printing */
+            }
+        }
+    </style>
 </head>
 <body>
     <%- include('header') %>
@@ -16,13 +46,7 @@
                 <h2 class="content-title card-title">Sales Report</h2>
             </div>
             <div class="content-actions" style="display: flex;">
-                <a class="btn btn-primary print ms-2" id="printScreen" >Download PDF Report</a>&nbsp;&nbsp;
-                <script>
-                    const printid=document.getElementById('printScreen')
-                    printid.addEventListener('click',function(){
-                        window.print()
-                    })
-                </script>
+                <a class="btn btn-primary print ms-2" id="printScreen">Download PDF Report</a>&nbsp;&nbsp;
                 <a href="/admin/downloadExcelReport?startDate=<%= start %>&endDate=<%= end %>" class="btn btn-primary">Download Excel Report</a>
             </div>
         </div>
@@ -76,7 +100,7 @@
                                         <th>Coupon</th>
                                         <th>Status</th>
                                         <th>Date</th>
-                                        <th class="text-end">Action</th>
+                                        <th class="text-end action-column">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -94,22 +118,19 @@
                                             <% } else { %>
                                                 <td><span class="text-success"><%= order.orderstatus %></span></td>
                                             <% } %>
-                                            <td><%= moment(order.orderDate).format('YYYY-MM-DD') %></td>
-                                            <td class="text-end">
+                                            <td><%= moment(order.orderDate).format('DD-MM-YYYY') %></td>
+                                            <td class="text-end action-column">
                                                 <a href="/admin/orderDetails?orderId=<%= order._id %>" class="btn btn-md rounded font-sm">Detail</a>
                                             </td>
                                         </tr>
                                     <% }) %>
                                 </tbody>
-                                
-                                
                             </table>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                
                 <div class="card mb-4">
                     <div class="card-body">
                         <h5 class="mb-3">Report</h5>
@@ -207,6 +228,33 @@
 
                 $('input[name="startDate"]').val(startDate);
                 $('input[name="endDate"]').val(endDate);
+            });
+
+            const printid = document.getElementById('printScreen');
+            printid.addEventListener('click', function() {
+                // Hide user controls and action column before printing
+                document.querySelector('.content-actions').classList.add('no-print');
+                document.querySelector('header.card-header').classList.add('no-print');
+                document.querySelector('.dataTables_length').classList.add('no-print');
+                document.querySelector('.dataTables_filter').classList.add('no-print');
+                document.querySelector('.dataTables_paginate').classList.add('no-print');
+                document.querySelector('.dataTables_info').classList.add('no-print');
+                document.querySelectorAll('.action-column').forEach(function(el) {
+                    el.classList.add('hide-column');
+                });
+
+                window.print();
+
+                // Show user controls and action column after printing
+                document.querySelector('.content-actions').classList.remove('no-print');
+                document.querySelector('header.card-header').classList.remove('no-print');
+                document.querySelector('.dataTables_length').classList.remove('no-print');
+                document.querySelector('.dataTables_filter').classList.remove('no-print');
+                document.querySelector('.dataTables_paginate').classList.remove('no-print');
+                document.querySelector('.dataTables_info').classList.remove('no-print');
+                document.querySelectorAll('.action-column').forEach(function(el) {
+                    el.classList.remove('hide-column');
+                });
             });
         });
     </script>

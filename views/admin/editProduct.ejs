@@ -9,12 +9,10 @@
     <style> 
        .main-content {
             margin-left: 16rem; /* Adjust based on your leftnav width */
-           
         }
         .header-container {
             background-color: white; /* Set header color to white */
             padding: 20px; /* Adjust padding as needed */
-           
         }
         .content-main {
             padding: 20px;
@@ -26,7 +24,10 @@
             margin: 20px auto; /* Center align button */
             background-color: #769796; /* Ensure button color */
         }
-       
+        .error-message {
+            color: red;
+            font-size: 0.875rem;
+        }
     </style>
 </head>
 <body>
@@ -35,15 +36,13 @@
 
     <div class="main-content">
         <div class="header-container">
-           
             <form action="/admin/editProductList?id=<%=products._id%>" method="post" enctype="multipart/form-data" onsubmit="return validateForm()" >
                 <!-- <form action="/admin/editProductList?id=<%=products._id%>" method="post" > -->
                 <div class="row">
                     <div class="col-9">
                         <div class="content-header">
                             <h2 class="content-title">Edit Product</h2>
-                            <div>
-                            </div>
+                            <div></div>
                         </div>
                     </div>
 
@@ -54,22 +53,26 @@
                                     <label for="product_title" class="form-label">Product Name</label>
                                     <input type="text" placeholder="Type here" class="form-control" id="product_title"
                                         name="title" value="<%=products.title%>" required>
+                                    <div class="error-message" id="product_title_error"></div>
                                 </div>
                                 <div class="row gx-3">
                                     <div class="col-md-4  mb-3">
                                         <label for="product_sku" class="form-label">Material</label>
                                         <input type="text" placeholder="Type here" class="form-control" id="product_sku"
                                             name="material" value="<%=products.material%>" required>
+                                        <div class="error-message" id="product_sku_error"></div>
                                     </div>
                                     <div class="col-md-4  mb-3">
                                         <label for="product_color" class="form-label">Color</label>
                                         <input type="text" placeholder="Type here" class="form-control"
                                             id="product_color" name="color" value="<%=products.color%>" required>
+                                        <div class="error-message" id="product_color_error"></div>
                                     </div>
                                     <div class="col-md-4  mb-3">
                                         <label for="product_size" class="form-label">Shape</label>
                                         <input type="text" placeholder="Type here" class="form-control"
                                             id="product_size" name="shape" value="<%=products.shape%>" required>
+                                        <div class="error-message" id="product_size_error"></div>
                                     </div>
                                 </div>
                                 <div class="mb-4">
@@ -88,6 +91,7 @@
                                     <label class="form-label">Description</label>
                                     <textarea placeholder="Type here" class="form-control" rows="4" name="description"
                                         required><%=products.description%></textarea>
+                                    <div class="error-message" id="description_error"></div>
                                 </div>
                             </div>
                         </div> <!-- card end// -->
@@ -129,28 +133,20 @@
                             <div class="card-header">
                                 <h4>images</h4>
                             </div>
-
-
-
-
                             <div class="card-body">
                                 <div class="input-upload">
                                     <img src="/" alt="">
                                     <% for(let i=0; i<products.image.length; i++) { %>
-
-
                                         <div class="image-preview">
                                             <button type="button" class="btn btn-danger delete-image rounded-circle"
                                                 onclick="deleteImage(`<%=i%>`, `<%=products._id%>`)">
-
                                                 <span aria-hidden="true">&times;</span>
                                             </button>
                                             <img src="/<%=products.image[i]%>" alt="">
-
                                         </div>
-                                        <% } %>
-                                            <input accept="image/*" name="image" class="form-control" type="file" id="fileInput" onchange="checkFileCount()"
-                                                multiple>
+                                    <% } %>
+                                    <input accept="image/*" name="image" class="form-control" type="file" id="fileInput" onchange="checkFileCount()"
+                                        multiple>
                                 </div>
                             </div>
 
@@ -166,7 +162,6 @@
                                         }
                                         const response=await fetch(`/admin/deleteImage/${productId}/${index}/`, {
                                             method: 'DELETE',
-
                                         });
 
                                         if (response.ok) {
@@ -181,21 +176,54 @@
                                 }
                             </script>
                             <script>
-                                function validateForm() {
-                                    var title = document.querySelector('input[name="title"]').value.trim();
-                            
-                                    if (title === '') {
-                                        alert('Invalid Product title');
-                                        return false;
+                                function checkFileCount() {
+                                    var fileInput = document.getElementById('fileInput');
+                                    var maxFiles = 5; // Set the maximum number of allowed files
+
+                                    if (fileInput.files.length > maxFiles) {
+                                        alert('You can only select up to ' + maxFiles + ' files.');
+                                        // Clear the selected files to enforce the limit
+                                        fileInput.value = '';
                                     }
-                            
-                                    return true;
+                                }
+
+                                function validateForm() {
+                                    const productName = document.getElementById('product_title').value.trim();
+                                    const material = document.getElementById('product_sku').value.trim();
+                                    const color = document.getElementById('product_color').value.trim();
+                                    const shape = document.getElementById('product_size').value.trim();
+                                    const description = document.querySelector('textarea[name="description"]').value.trim();
+
+                                    const specialCharPattern = /^[!@#$%^&*()_+=[\]{};':"\\|,.<>/?0-9-]/;
+                                    const singleSpecialCharOrNumberPattern = /^[!@#$%^&*()_+=[\]{};':"\\|,.<>/?0-9-\s]+$/;
+
+                                    let isValid = true;
+
+                                    const fields = [
+                                        { value: productName, name: "Product Name", errorElement: document.getElementById('product_title_error') },
+                                        { value: material, name: "Material", errorElement: document.getElementById('product_sku_error') },
+                                        { value: color, name: "Color", errorElement: document.getElementById('product_color_error') },
+                                        { value: shape, name: "Shape", errorElement: document.getElementById('product_size_error') },
+                                        { value: description, name: "Description", errorElement: document.getElementById('description_error') }
+                                    ];
+
+                                    for (const field of fields) {
+                                        field.errorElement.textContent = ""; // Clear previous error message
+                                        if (field.value === "") {
+                                            field.errorElement.textContent = `${field.name} cannot be empty`;
+                                            isValid = false;
+                                        } else if (specialCharPattern.test(field.value)) {
+                                            field.errorElement.textContent = `${field.name} cannot start with a special character, number, or underscore`;
+                                            isValid = false;
+                                        } else if (singleSpecialCharOrNumberPattern.test(field.value)) {
+                                            field.errorElement.textContent = `${field.name} cannot be a single special character, number, or underscore`;
+                                            isValid = false;
+                                        }
+                                    }
+
+                                    return isValid;
                                 }
                             </script>
-
-                            
-
-
                         </div> <!-- card end// -->
                         <div class="card mb-4">
                             <div class="card-header">
@@ -218,7 +246,6 @@
                                         <label for="product_name" class="form-label">Rating</label>
                                         <input type="text" class="form-control" name="rating" value="<%=products.rating%>">
                                     </div>
-
                                     <div class="col-sm-12 mb-3">
                                         <h5 class="mb-3">Featured</h5>
                                         <div class="mb-4">
@@ -226,34 +253,17 @@
                                                 <option style="display:none;" value="<%=products.featured%>"><%=products.featured%></option>
                                                 <option value="true">True</option>
                                                 <option value="false">False</option>
-                                                
                                             </select>
                                         </div>
                                     </div>
-                                   
-
                                 </div> <!-- row.// -->
                             </div>
                         </div> <!-- card end// -->
                     </div>
                 </div>
-                </div>
                 <button type="submit" class="btn btn-md rounded font-sm hover-up btn-submit">Submit</button>
             </form>
-            </div>
         </div>
-            <script>
-                function checkFileCount() {
-                  var fileInput = document.getElementById('fileInput');
-                  var maxFiles = 5; // Set the maximum number of allowed files
-            
-                  if (fileInput.files.length > maxFiles) {
-                    alert('You can only select up to ' + maxFiles + ' files.');
-                    // Clear the selected files to enforce the limit
-                    fileInput.value = '';
-                  }
-                }
-              </script>
-     
+    </div>
 </body>
 </html>

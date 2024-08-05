@@ -13,6 +13,8 @@ const PDFDocument = require('pdfkit');
 const ExcelJS = require('exceljs');
 const pdf = require('html-pdf-node');
 const moment = require('moment');
+const htmlToPdf = require('html-pdf-node');
+const ejs = require('ejs');
 
 
 
@@ -518,62 +520,74 @@ dateFilter : async (req, res) => {
 
 downloadPdfReport: async (req, res) => {
     try {
-        const query = req.query.startDate && req.query.endDate ? {
+        const { startDate, endDate } = req.query;
+        console.log('startDate:', startDate, 'endDate:', endDate); // Debug log
+
+        const query = startDate && endDate ? {
             orderDate: {
-                $gte: new Date(req.query.startDate),
-                $lte: new Date(req.query.endDate)
+                $gte: moment(startDate, 'YYYY-MM-DD').toDate(),
+                $lte: moment(endDate, 'YYYY-MM-DD').toDate()
             }
         } : {};
 
         const orderData = await Order.find(query).populate('userId').sort({ orderDate: -1 });
+        console.log('orderData:', orderData); // Debug log
 
-        let htmlContent = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <style>
-                    body { font-family: Arial, sans-serif; }
-                    h1 { text-align: center; }
-                    .order-container { margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
-                    .order-container p { margin: 0; line-height: 1.5; }
-                    .order-container hr { border: 0; border-top: 1px solid #ccc; margin: 10px 0; }
-                </style>
-            </head>
-            <body>
-                <h1>Sales Report</h1>
-                ${orderData.map(order => `
-                    <div class="order-container">
-                        <p><strong>Order ID:</strong> ORD#${order.orderId}</p>
-                        <p><strong>Customer Name:</strong> ${order.userId.name}</p>
-                        <p><strong>Original Price:</strong> ₹${order.originalTotal ? order.originalTotal.toFixed(2) : 'N/A'}</p>
-                        <p><strong>Sale Price:</strong> ₹${order.totalAmount ? order.totalAmount.toFixed(2) : 'N/A'}</p>
-                        <p><strong>Discount Amount:</strong> ₹${order.discountTotal ? order.discountTotal.toFixed(2) : 'N/A'}</p>
-                        <p><strong>Discount Percentage:</strong> ${order.totalDiscountPercentage ? order.totalDiscountPercentage.toFixed(2) + '%' : 'N/A'}</p>
-                        <p><strong>Coupon:</strong> ₹${order.coupon ? order.coupon.toFixed(2) : 'N/A'}</p>
-                        <p><strong>Status:</strong> ${order.orderstatus}</p>
-                        <p><strong>Date:</strong> ${new Date(order.orderDate).toLocaleDateString('en-GB')}</p>
-                    </div>
-                `).join('')}
-            </body>
-            </html>
-        `;
+        const orders = orderData.map(order => ({
+            orderId: order.orderId,
+            userId: order.userId ? order.userId.name : 'N/A',
+            originalTotal: order.originalTotal ? order.originalTotal.toFixed(2) : 'N/A',
+            totalAmount: order.totalAmount ? order.totalAmount.toFixed(2) : 'N/A',
+            discountAmount: order.discountTotal ? order.discountTotal.toFixed(2) : 'N/A',
+            totalDiscountPercentage: order.totalDiscountPercentage ? order.totalDiscountPercentage.toFixed(2) + '%' : 'N/A',
+            coupon: order.coupon ? '₹' + order.coupon.toFixed(2) : 'N/A',
+            orderstatus: order.orderstatus,
+            orderDate: moment(order.orderDate).format('YYYY-MM-DD')
+        }));
 
-        let options = { format: 'A4' };
-        let file = { content: htmlContent };
+        const totalOrders = orders.length;
+        const totalCustomers = await Order.distinct('userId', query).length;
+        const totalTransaction = orders.reduce((acc, order) => acc + (parseFloat(order.totalAmount) || 0), 0);
+        const onlinePayments = orders.filter(order => order.paymentMethod === 'Razorpay').length;
+        const cashOnDelivery = orders.filter(order => order.paymentMethod !== 'Razorpay').length;
+        const orderCancelled = orders.filter(order => order.orderstatus === 'Cancelled').length;
+        const totalDiscounts = orders.reduce((acc, order) => acc + (parseFloat(order.discountAmount) || 0), 0);
+        const totalCoupons = orders.reduce((acc, order) => acc + (parseFloat(order.coupon) || 0), 0);
+        const templatePath = path.join(__dirname, '../../../views/admin/salesReportTemplate.ejs'); // Adjusted path
+        console.log('templatePath:', templatePath); // Debug log
+        
+        
+        const html = await ejs.renderFile(templatePath, {
+            orders,
+            totalOrders,
+            totalCustomers,
+            totalTransaction,
+            onlinePayments,
+            cashOnDelivery,
+            orderCancelled,
+            totalDiscounts,
+            totalCoupons,
+            moment // Pass moment to the view
+        });
 
-        pdf.generatePdf(file, options).then(pdfBuffer => {
+        const file = { content: html };
+        const options = { format: 'A4' };
+
+        htmlToPdf.generatePdf(file, options).then(pdfBuffer => {
             res.setHeader('Content-Type', 'application/pdf');
             res.setHeader('Content-Disposition', 'attachment; filename=Sales_Report.pdf');
             res.send(pdfBuffer);
         }).catch(error => {
-            console.log(error.message);
+            console.error('PDF Generation Error:', error.message); // Debug log
             res.redirect('/500');
         });
     } catch (error) {
-        console.log(error.message);
+        console.error('Error in downloadPdfReport:', error.message); // Debug log
         res.redirect('/500');
     }
 },
+
+
 
 
 downloadExcelReport: async (req, res) => {

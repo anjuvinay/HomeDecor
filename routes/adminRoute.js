@@ -28,6 +28,8 @@ adminRoute.get('/home',auth.isLogin, adminController.loadDashboard)
 adminRoute.get('/salesReport', auth.isLogin, adminController.salesReport)
 adminRoute.post('/dateFilter', auth.isLogin, adminController.dateFilter)
 adminRoute.get('/downloadPdfReport', auth.isLogin, adminController.downloadPdfReport);
+
+
 adminRoute.get('/downloadExcelReport', auth.isLogin, adminController.downloadExcelReport);
 adminRoute.get('/getChartData', auth.isLogin, adminController.getChartData);
 
@@ -71,17 +73,6 @@ adminRoute.post('/addCategoryOffer', auth.isLogin, offerController.updateCategor
 adminRoute.get('/deleteCategoryOffer', auth.isLogin, offerController.deleteCategoryOffer);
 adminRoute.get('/editCategoryOffer', auth.isLogin, offerController.editCategoryOffer);
 adminRoute.post('/updateCategoryOffer', auth.isLogin, offerController.updateCategoryOffer);
-
-
-
-
-
-
-
-
-
-
-
 
 
 
