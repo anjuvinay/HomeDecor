@@ -18,6 +18,18 @@ const ejs = require('ejs');
 
 
 
+
+const adminCredentials = {
+    name: 'Admin',
+    email: 'admin@gmail.com',
+    password: "$2b$10$9CkMSdzD/pN6ezv/G0j7SukaR/H2fg6shoJfhr0HyeHqsB6qCxQIa", // This is a bcrypt hash of '123'
+    
+};
+
+
+
+
+
 module.exports = {
 
 loadLogin : async (req, res) => {
@@ -39,37 +51,65 @@ catch (error) {
 
 
 
-verifyLogin : async (req, res) => {
+verifyLogin: async (req, res) => {
     try {
-        const { email } = req.body
-        const { password } = req.body
-        const userData = await User.findOne({ email: email })
-       
-        if (userData) {
-            if (userData.is_admin === true) {
-                const passwordMatch=await bcrypt.compare(password,userData.password)
+        const { email, password } = req.body;
 
-                if (passwordMatch) {
-                    req.session.adminId = userData._id
-                    req.session.adminName=userData.name
-                    res.redirect('/admin/home')
+        // Check if the email matches the hardcoded admin email
+        if (email === adminCredentials.email) {
+            // Compare the provided password with the hashed admin password
+            const passwordMatch = await bcrypt.compare(password, adminCredentials.password);
 
-                } else {
-                    res.render('admin_login', { message: 'Invalid password' })
-                    
-                }
+            if (passwordMatch) {
+                // Set the session for the admin
+                
+                req.session.adminName = adminCredentials.name;
+                res.redirect('/admin/home');
             } else {
-                res.render('admin_login', { message: 'Admin not found' })
+                res.render('admin_login', { message: 'Invalid password' });
             }
         } else {
-            res.render('admin_login', { message: 'Admin not found' })
+            res.render('admin_login', { message: 'Admin not found' });
         }
-
     } catch (error) {
-        console.log(error.message)
-        res.redirect('/500')
+        console.error('Error during admin login:', error.message);
+        res.status(500).render('500', { message: 'Internal Server Error' });
     }
 },
+
+
+
+// verifyLogin : async (req, res) => {
+//     try {
+//         const { email } = req.body
+//         const { password } = req.body
+//         const userData = await User.findOne({ email: email })
+       
+//         if (userData) {
+//             if (userData.is_admin === true) {
+//                 const passwordMatch=await bcrypt.compare(password,userData.password)
+
+//                 if (passwordMatch) {
+//                     req.session.adminId = userData._id
+//                     req.session.adminName=userData.name
+//                     res.redirect('/admin/home')
+
+//                 } else {
+//                     res.render('admin_login', { message: 'Invalid password' })
+                    
+//                 }
+//             } else {
+//                 res.render('admin_login', { message: 'Admin not found' })
+//             }
+//         } else {
+//             res.render('admin_login', { message: 'Admin not found' })
+//         }
+
+//     } catch (error) {
+//         console.log(error.message)
+//         res.redirect('/500')
+//     }
+// },
 
 
 Logout : async (req, res) => {
