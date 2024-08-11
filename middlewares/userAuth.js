@@ -6,9 +6,10 @@ const User = require('../models/userModel')
 const isLogin = async (req, res, next) => {
     try {
         if (req.session.email || req.isAuthenticated()) {
+            console.log("session is: active");
             next();
         } else {
-            console.log("session is: nothing");
+            console.log("session is: not-active");
             req.session.redirectTo = req.originalUrl;
             res.redirect('/login');
         }

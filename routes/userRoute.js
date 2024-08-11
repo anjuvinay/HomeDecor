@@ -10,6 +10,7 @@ const auth = require('../middlewares/userAuth')
 const passport=require('passport')
 const couponController = require('../controllers/couponController')
 const wishlistController = require('../controllers/wishlistController')
+const User = require('../models/userModel')
 require('../passport')
 
 
@@ -35,8 +36,35 @@ userRoute.get('/logout', userController.userLogout)
 
 //-----------------------------------------------google authentication---------------------------------------->
 
-userRoute.get('/auth/google', passport.authenticate('google', {scope: ['email', 'profile'] }))
-userRoute.get('/auth/google/callback',passport.authenticate('google',{successRedirect:'/', failureRedirect:'/login'}))
+// userRoute.get('/auth/google', passport.authenticate('google', {scope: ['email', 'profile'] }))
+// userRoute.get('/auth/google/callback',passport.authenticate('google',{successRedirect:'/', failureRedirect:'/login'}))
+
+userRoute.get('/auth/google', passport.authenticate('google', {scope: ['email', 'profile']}));
+
+userRoute.get('/auth/google/callback', passport.authenticate('google', {
+    failureRedirect: '/login'
+  }), async (req, res) => {
+    // Fetch the user from the database using the Google ID stored in the session
+    const user = await User.findOne({ googleId: req.user.googleId });
+  
+    // Add email and userName to the session
+    req.session.email = user.email;
+    req.session.userName = user.name;
+  
+    // Log the session to verify
+    console.log('Session after Google login:', req.session);
+  
+    // Redirect to the homepage or wherever you want to send the user
+    res.redirect('/');
+  });
+  
+
+
+userRoute.get('/session-check', (req, res) => {
+    res.json({ session: req.session });
+  });
+  
+
 
 //-----------------------------------------------forgot password---------------------------------------->
 

@@ -313,6 +313,7 @@ module.exports = {
 
     loadHome: async (req, res, next) => {
         try {
+            console.log('Session on home page:', req.session);
             let user = req.session.userName;
           let page = 1;
     
