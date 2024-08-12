@@ -41,22 +41,52 @@ userRoute.get('/logout', userController.userLogout)
 
 userRoute.get('/auth/google', passport.authenticate('google', {scope: ['email', 'profile']}));
 
+// userRoute.get('/auth/google/callback', passport.authenticate('google', {
+//     failureRedirect: '/login'
+//   }), async (req, res) => {
+//     const user = await User.findOne({ googleId: req.user.googleId });
+  
+//     req.session.email = user.email;
+//     req.session.userName = user.name;
+  
+//     console.log('Session after Google login:', req.session);
+  
+//     res.redirect('/');
+//   });
+
 userRoute.get('/auth/google/callback', passport.authenticate('google', {
-    failureRedirect: '/login'
-  }), async (req, res) => {
-    // Fetch the user from the database using the Google ID stored in the session
+  failureRedirect: '/login'
+}), async (req, res) => {
+  try {
     const user = await User.findOne({ googleId: req.user.googleId });
-  
-    // Add email and userName to the session
-    req.session.email = user.email;
-    req.session.userName = user.name;
-  
-    // Log the session to verify
-    console.log('Session after Google login:', req.session);
-  
-    // Redirect to the homepage or wherever you want to send the user
-    res.redirect('/');
-  });
+    
+    // Ensure user is found, and session data is correctly set
+    if (user) {
+      req.session.email = user.email;
+      req.session.userName = user.name;
+
+      // Save the session to ensure it's persisted
+      req.session.save((err) => {
+        if (err) {
+          console.error('Session save error:', err);
+          return res.redirect('/login');
+        }
+        const redirectUrl = req.session.redirectTo || '/';
+        delete req.session.redirectTo;
+        res.redirect(redirectUrl);
+      });
+    } else {
+      // In case something goes wrong and the user isn't found
+      req.flash('error_msg', 'User not found, please try again.');
+      res.redirect('/login');
+    }
+  } catch (error) {
+    console.error('Error during Google callback:', error);
+    res.redirect('/500'); // Or handle the error as needed
+  }
+});
+
+
   
 
 
