@@ -52,9 +52,9 @@ const userSchema=mongoose.Schema({
     },
     googleId: {  // Add this field to store the Google ID
         type: String,
-        unique: true,
+        // unique: true,
         sparse: true, // Allow unique values but permit null (for users not using Google)
-        default:null
+        //default:null
     }
 })
 

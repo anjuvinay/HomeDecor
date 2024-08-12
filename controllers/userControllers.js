@@ -155,7 +155,7 @@ sendOtp : async (req, res) => {
         console.log(req.session.otp)
         setTimeout(() => {
             console.log('session ended')
-        }, 30000);
+        }, 60000);
 
         req.session.otpTime = Date.now()
 
@@ -174,7 +174,7 @@ verifyOtp : async (req, res) => {
         const randomotp = req.body.otp
         const timelimit = Date.now()
 
-        if (timelimit - req.session.otpTime > 30000) {
+        if (timelimit - req.session.otpTime > 60000) {
             res.render('otpverification', { message: 'OTP timeout' })
         } else {
             const { name, email, mobile, password, referralCode } = req.session.data
