@@ -22,6 +22,7 @@ userRoute.use(passport.session())
 
 userRoute.get('/',productController.loadHome)
 userRoute.get('/shop', productController.shop)
+userRoute.get('/500', userController.error500)
 
 //-----------------------------------------------Authentication---------------------------------------->
 

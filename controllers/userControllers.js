@@ -701,5 +701,13 @@ updatePassword : async (req, res) => {
     }
 },
 
+error500 : async(req,res)=>{
+    try {
+        res.render('error500')
+    } catch (error) {
+        console.log(error.message)
+    }
 
+
+}
 }

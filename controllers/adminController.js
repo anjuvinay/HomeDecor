@@ -63,7 +63,7 @@ verifyLogin : async (req, res) => {
        
         if (userData) {
             // if (userData.is_admin === true) {
-                if (userData.name === "admin") {
+                if (userData.name === "manju") {
                 const passwordMatch=await bcrypt.compare(password,userData.password)
 
                 if (passwordMatch) {

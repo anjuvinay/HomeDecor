@@ -76,7 +76,11 @@ app.use('/admin', adminRoute)
 
 
 
+app.use('*',async(req,res)=>{
 
+  res.render('user/404page')
+ })
+ 
 
 
 app.listen(PORT,()=>{
